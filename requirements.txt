@@ -1,0 +1,14 @@
+streamlit
+pymupdf
+pypdf
+pdfplumber
+pandas
+openpyxl
+Pillow
+reportlab
+requests
+google-api-python-client
+google-auth
+pytesseract
+pdf2image
+google-generativeai
