@@ -1,5 +1,7 @@
 import streamlit as st
+from PIL import Image
 from core.theme import inject_theme
+from views.login_view import login_screen
 from views.login_view import login_screen
 from views.pdf_stamper_view import render_pdf_stamper_ui  
 from views.pdf_compressor_view import render_pdf_compressor_ui 
@@ -9,7 +11,9 @@ from views.history_view import render_history_ui
 from core.utils import add_log
 
 # ၁။ Page Config
-st.set_page_config(page_title="Shipping Tools - V2", layout="wide")
+# 💡 ဤနေရာတွင် ဖိုင်နာမည်ကို "TH Logo.png" ဟု အတိအကျ ပြင်ဆင်ထားပါသည်
+logo_img = Image.open("assets/images/TH Logo.png") 
+st.set_page_config(page_title="Shipping Tools - V2", page_icon=logo_img, layout="wide")
 
 # ၂။ Login Session State
 if "logged_in" not in st.session_state: 
