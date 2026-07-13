@@ -1,7 +1,6 @@
 import streamlit as st
 from core.theme import inject_theme
 from views.login_view import login_screen
-from views.new_tool_view import render_new_tool_ui
 from views.pdf_stamper_view import render_pdf_stamper_ui  
 from views.pdf_compressor_view import render_pdf_compressor_ui 
 from views.document_combiner_view import render_document_combiner_ui
@@ -26,7 +25,7 @@ if not st.session_state.logged_in:
 # ၄။ Theme စနစ်
 inject_theme()
 
-# 💡 နေရာလွတ် (Gap) များကို ကျစ်လျစ်သွားစေမည့် CSS
+# 💡 နေရာလွတ် (Gap) များနှင့် Primary Button များကို ရေပြာရင့်ရောင်သို့ ပြောင်းလဲမည့် CSS
 st.markdown("""
 <style>
 .block-container {
@@ -47,13 +46,31 @@ div[data-testid="stRadio"] {
 div[data-testid="stMarkdownContainer"] > p {
     margin-bottom: 0.5rem !important;
 }
+
+/* 🎨 အဓိက ခလုတ်များ (Primary Buttons) အားလုံးကို ရေပြာရင့်ရောင် ပြောင်းခြင်း */
+button[kind="primary"] {
+    background-color: #1E40AF !important; 
+    border: none !important;
+}
+
+/* 💡 ခလုတ်အတွင်းရှိ စာသားများကို အဖြူရောင်နှင့် အထူ (Bold) ပြောင်းပေးခြင်း */
+button[kind="primary"] p {
+    color: #ffffff !important;
+    font-weight: bold !important;
+    font-size: 16px !important;
+}
+
+button[kind="primary"]:hover {
+    background-color: #1e3a8a !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # ၅။ Header Layout
 top_col1, top_col2 = st.columns([7, 3])
 with top_col1:
-    st.title("Shipping Tools - V2")
+    # 💡 ခေါင်းစဉ် (Header) ကို ရေပြာရင့်ရောင် ပြောင်းထားပါသည်
+    st.markdown("<h1 style='color: #1E40AF; padding-bottom: 0; margin-bottom: 0;'>Shipping Tools - V2</h1>", unsafe_allow_html=True)
     st.caption(f"Active User: {st.session_state.current_user} | 🔐 Secure Access")
 
 with top_col2:
@@ -75,7 +92,7 @@ with top_col2:
 
 st.markdown("---")
 
-# ၆။ 🛡️ Menu Bar စနစ် (Air Docs Merge ကို ဖယ်ရှားထားပါသည်)
+# ၆။ 🛡️ Menu Bar စနစ်
 available_tools = ["PDF Stamper", "PDF Compressor", "Extract Forms", "Document Combiner"]
 
 if st.session_state.current_user == "admin":
