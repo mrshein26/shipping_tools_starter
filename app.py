@@ -1,60 +1,99 @@
 import streamlit as st
+from core.theme import inject_theme
+from views.login_view import login_screen
+from views.new_tool_view import render_new_tool_ui
+from views.pdf_stamper_view import render_pdf_stamper_ui  
+from views.pdf_compressor_view import render_pdf_compressor_ui 
+from views.document_combiner_view import render_document_combiner_ui
+from views.extract_forms_view import render_extract_forms_ui
+from views.history_view import render_history_ui  
+from core.utils import add_log
 
-from auth import get_user_db, require_login, render_login, logout
-from config import APP_TITLE, TOOL_ACCESS
-from services.logger import add_log, render_admin_log
-from tools.pdf_stamper import render_pdf_stamper
-from tools.document_combiner import render_document_combiner
-from tools.forms import render_forms_home
-from tools.air_docs_merge import render_air_docs_merge
-from tools.admin import render_admin_tools
-from ui.layout import apply_page_config, render_header
+# ၁။ Page Config
+st.set_page_config(page_title="Shipping Tools - V2", layout="wide")
 
+# ၂။ Login Session State
+if "logged_in" not in st.session_state: 
+    st.session_state.logged_in = False
+if "current_user" not in st.session_state: 
+    st.session_state.current_user = None
 
-def available_tools(username: str) -> list[str]:
-    tools = []
-    for tool_name, allowed_roles in TOOL_ACCESS.items():
-        if "all" in allowed_roles or username in allowed_roles:
-            tools.append(tool_name)
-    return tools
+# ၃။ 🔐 Login စစ်ဆေးခြင်း
+if not st.session_state.logged_in:
+    login_screen() 
+    st.stop()
 
+# ၄။ Theme စနစ်
+inject_theme()
 
-def main() -> None:
-    apply_page_config()
-    user_db = get_user_db()
+# 💡 နေရာလွတ် (Gap) များကို ကျစ်လျစ်သွားစေမည့် CSS
+st.markdown("""
+<style>
+.block-container {
+    padding-top: 2rem !important;
+    padding-bottom: 1rem !important;
+}
+hr {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+}
+h1, h2, h3, h4 {
+    padding-bottom: 0.2rem !important;
+    margin-bottom: 0.2rem !important;
+}
+div[data-testid="stRadio"] {
+    margin-bottom: -1rem !important;
+}
+div[data-testid="stMarkdownContainer"] > p {
+    margin-bottom: 0.5rem !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
-    if not require_login():
-        render_login(user_db)
-        return
+# ၅။ Header Layout
+top_col1, top_col2 = st.columns([7, 3])
+with top_col1:
+    st.title("Shipping Tools - V2")
+    st.caption(f"Active User: {st.session_state.current_user} | 🔐 Secure Access")
 
-    current_user = st.session_state.current_user
-    render_header(APP_TITLE, current_user, on_logout=logout)
+with top_col2:
+    theme_col, logout_col = st.columns(2)
+    with theme_col:
+        current_theme = st.selectbox(
+            "Theme", ["Light", "Dark"], 
+            index=0 if st.session_state.theme == "Light" else 1,
+            label_visibility="collapsed"
+        )
+        if current_theme != st.session_state.theme:
+            st.session_state.theme = current_theme
+            st.rerun()
+    with logout_col:
+        if st.button("⏻ Log Out", use_container_width=True):
+            add_log(st.session_state.current_user, "Logged Out")
+            st.session_state.logged_in = False
+            st.rerun()
 
-    if current_user == "admin":
-        render_admin_log()
+st.markdown("---")
 
-    tool = st.segmented_control(
-        "Select Tool",
-        available_tools(current_user),
-        default="PDF Stamper",
-        label_visibility="collapsed",
-    )
+# ၆။ 🛡️ Menu Bar စနစ် (Air Docs Merge ကို ဖယ်ရှားထားပါသည်)
+available_tools = ["PDF Stamper", "PDF Compressor", "Extract Forms", "Document Combiner"]
 
-    st.divider()
+if st.session_state.current_user == "admin":
+    available_tools.append("Admin Tools") 
 
-    if tool == "PDF Stamper":
-        render_pdf_stamper(current_user)
-    elif tool == "Document Combiner":
-        render_document_combiner(current_user)
-    elif tool == "Extract Forms":
-        render_forms_home(current_user)
-    elif tool == "Air Docs Merge":
-        render_air_docs_merge(current_user)
-    elif tool == "Admin Tools":
-        render_admin_tools(current_user)
+st.write("### 🧰 Select Tool")
+tool = st.radio("Select Tool Menu", available_tools, horizontal=True, label_visibility="collapsed")
 
-    add_log(current_user, f"Opened tool: {tool}", once_key=f"opened_{tool}_{current_user}")
+st.markdown("---")
 
-
-if __name__ == "__main__":
-    main()
+# ၇။ 🔄 Tool Routers 
+if tool == "PDF Stamper":
+    render_pdf_stamper_ui()
+elif tool == "PDF Compressor":
+    render_pdf_compressor_ui()
+elif tool == "Extract Forms":
+    render_extract_forms_ui()
+elif tool == "Document Combiner":
+    render_document_combiner_ui()
+elif tool == "Admin Tools":
+    render_history_ui()
