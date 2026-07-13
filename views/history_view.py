@@ -790,6 +790,20 @@ def render_history_ui():
                                              comp = str(df_raw.iloc[i+1, 0]).strip()
                                              if comp and comp != 'nan': composition = comp
                                              
+                                        # ==========================================
+                                        # 💡 Logic အသစ် (Composition % ပါမှသာ KNITTING PANEL / YARN ပေါင်းထည့်မည်)
+                                        # ==========================================
+                                        inv_upper = str(invoice_no).upper()
+                                        desc_upper = composition.upper()
+                                        
+                                        # '%' ပါဝင်မှသာ Composition Item အဖြစ် သတ်မှတ်မည်
+                                        if "%" in composition:
+                                            if inv_upper.startswith("LY") or "CUT PIECES" in desc_upper:
+                                                composition = f"{composition} KNITTING PANEL"
+                                            elif inv_upper.startswith("PX") or "YARN" in desc_upper:
+                                                composition = f"{composition} KNITTING YARN"
+                                        # ==========================================
+                                             
                                         data_rows.append({
                                             "Description": composition,
                                             "Carton(S)": float(df_raw.iloc[i, 4]),
@@ -849,7 +863,7 @@ def render_history_ui():
                                 ws.column_dimensions['D'].width = 15; ws.column_dimensions['E'].width = 15; ws.column_dimensions['F'].width = 15; ws.column_dimensions['G'].width = 15
                                 
                                 out_xl = io.BytesIO(); wb.save(out_xl); out_xl.seek(0)
-                                output_filename = f"{invoice_no}+Summary Data.xlsx"
+                                output_filename = f"{invoice_no} Summary Data.xlsx"
                                 
                                 # 💡 Discord Alert
                                 mm_time = datetime.utcnow() + timedelta(hours=6, minutes=30)
