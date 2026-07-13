@@ -31,17 +31,27 @@ def login_screen():
             max-width: 420px !important;
             margin: 0 auto !important;
         }
-        .stButton>button {
-            background-color: #a6192e !important; border: none !important;
-            border-radius: 6px !important; padding: 0.6rem !important; margin-top: 10px !important;
+        
+        /* 💡 ဤအပိုင်းက Password အကွက်နှင့် Sign In ခလုတ်ကြား ကပ်နေတာကို ခွာပေးမည့် အပိုင်းဖြစ်ပါသည် */
+        [data-testid="stFormSubmitButton"] {
+            margin-top: 25px !important; 
+        }
+        
+        /* 💡 ဤအပိုင်းက Sign In ခလုတ်ကို ရေပြာရင့်ရောင် ပြောင်းပေးမည့် အပိုင်းဖြစ်ပါသည် */
+        [data-testid="stFormSubmitButton"] button {
+            background-color: #1E40AF !important; 
+            border: none !important;
+            border-radius: 6px !important; 
+            padding: 0.6rem !important; 
             width: 100% !important;
         }
-        .stButton>button p {
-            color: #ffffff !important; font-size: 16px !important;
+        [data-testid="stFormSubmitButton"] button p {
+            color: #ffffff !important; 
+            font-size: 16px !important;
             font-weight: bold !important;
         }
-        .stButton>button:hover {
-            background-color: #8a1526 !important;
+        [data-testid="stFormSubmitButton"] button:hover {
+            background-color: #1e3a8a !important;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -49,13 +59,15 @@ def login_screen():
     _, col_login, _ = st.columns([1, 1.5, 1])
 
     with col_login:
-        st.markdown("<h3 style='text-align: center; color: #a6192e;'>Shipping Portal</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='text-align: center; color: #1E40AF;'>Shipping Portal</h3>", unsafe_allow_html=True)
         st.markdown("<div style='text-align: center; color: #475569; margin-bottom: 25px; font-size: 18px;'><b>Member</b> Login</div>", unsafe_allow_html=True)
         
         with st.form(key='login_form'):
             u_name = st.text_input("Username")
             u_pass = st.text_input("Password", type="password")
-            submit_button = st.form_submit_button("Sign In")
+            
+            # 💡 အရောင်ကို CSS မှ ထိန်းချုပ်မည်ဖြစ်၍ type="primary" ကို ဖြုတ်လိုက်ပါသည်
+            submit_button = st.form_submit_button("Sign In", use_container_width=True)
 
             if submit_button:
                 # core/auth.py မှ Function ကို လှမ်းခေါ်စစ်ဆေးခြင်း

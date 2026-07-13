@@ -81,7 +81,7 @@ class MemoryFile(io.BytesIO):
 # =========================================================
 def render_pdf_stamper_ui():
     st.subheader("📄 All-in-One Auto Stamping")
-    st.info("💡 Invoice နှင့် Packing List များကို စနစ်မှ အလိုအလျောက် ခွဲခြား၍ Stamping, Rex Text (TR/OT) နှင့် File Size ချုံ့ခြင်းများကို ပြုလုပ်ပေးပါမည်။")
+    st.info("💡 Invoice နှင့် Packing List များကို  Stamping, TR/OT တွင် Rex စာသားထည့်ရန်။")
 
     # Session States
     if "stamper_up_key" not in st.session_state: st.session_state.stamper_up_key = 0
@@ -95,11 +95,11 @@ def render_pdf_stamper_ui():
     # 🗜️ Toggle Options
     c_tog1, c_tog2 = st.columns([1, 1])
     with c_tog1:
-        do_compress = st.toggle("🗜️ **Compress Output PDFs** (ဖိုင်ဆိုဒ်ကို အလိုအလျောက် ချုံ့ပေးမည်)", value=True)
+        do_compress = st.toggle("🗜️ **Compress Output PDFs**", value=True)
         if do_compress and not shutil.which("gs"):
             st.warning("⚠️ သင့်စက်တွင် Ghostscript မရှိပါ။ Compression အလုပ်လုပ်မည် မဟုတ်ပါ။")
     with c_tog2:
-        do_auto_merge = st.toggle("🔗 **Auto-Merge after Stamping** (Document Combiner အတိုင်း အလိုအလျောက် ပေါင်းမည်)", value=False)
+        do_auto_merge = st.toggle("🔗 **Auto-Merge after Stamping** (Document Combiner အတိုင်း Auto ပေါင်းမည်)", value=False)
     
     st.markdown("---")
 
@@ -126,7 +126,7 @@ def render_pdf_stamper_ui():
                 with open(stamp_inv_path, "rb") as f: inv_stamp_bytes = f.read()
                 with open(stamp_pl_path, "rb") as f: pl_stamp_bytes = f.read()
 
-                with st.spinner("စနစ်မှ ဖိုင်များကို အလိုအလျောက် စစ်ဆေးပြီး အလုပ်လုပ်နေပါသည်..."):
+                with st.spinner("စနစ်မှ ဖိုင်များကို စစ်ဆေးပြီး အလုပ်လုပ်နေပါသည်..."):
                     extracted_files = extract_files(uploaded_raw_files)
                     
                     inv_results = []
@@ -402,7 +402,7 @@ def render_pdf_stamper_ui():
         res = st.session_state.stamper_res
         
         if res.get("type") == "stamped_only":
-            st.success(f"🎉 အောင်မြင်ပါသည်။ **Invoices ({res['inv_cnt']})** နှင့် **Packing Lists ({res['pl_cnt']})** စုစုပေါင်း ({res['inv_cnt'] + res['pl_cnt']}) ဖိုင်ကို တံဆိပ်တုံးထုပြီး ဖိုဒါခွဲပေးထားပါသည်။")
+            st.success(f"🎉 အောင်မြင်ပါသည်။ **Invoices ({res['inv_cnt']})** နှင့် **Packing Lists ({res['pl_cnt']})** စုစုပေါင်း ({res['inv_cnt'] + res['pl_cnt']}) ဖိုင်ကို တံဆိပ်တုံးထုပြီး Folder ခွဲပေးထားပါသည်။")
             st.download_button(
                 label="📥 Download Processed Files (ZIP)", 
                 data=res["data"], 

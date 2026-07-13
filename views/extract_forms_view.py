@@ -363,7 +363,7 @@ def render_extract_forms_ui():
     
     st.markdown("<br>", unsafe_allow_html=True) # ခပ်ပါးပါး ခြားရန်
     
-    do_compress = st.toggle("🗜️ **Compress Output PDFs** (ဖိုင်ဆိုဒ်ကို Quality မကျဘဲ အလိုအလျောက် ချုံ့ပေးမည်)", value=True)
+    do_compress = st.toggle("🗜️ **Compress Output PDFs**", value=True)
     if do_compress and not shutil.which("gs"):
         st.warning("⚠️ သင့်စက်တွင် Ghostscript ကို Install မလုပ်ထားပါ။ Compression အလုပ်လုပ်မည် မဟုတ်ပါ။")
         

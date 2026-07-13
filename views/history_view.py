@@ -59,35 +59,38 @@ def compress_pdf_bytes(pdf_bytes, gs_setting="/ebook"):
 
 def render_history_ui():
     st.subheader("🛠️ Admin Tools")
+    
     # =========================================================================
-    # 🗜️ GLOBAL PDF COMPRESSION SETTINGS (Expander ဖြင့် နေရာချုံ့ထားခြင်း)
+    # 🗜️ GLOBAL PDF COMPRESSION SETTINGS (Expander မပါဘဲ တိုက်ရိုက်ပြသခြင်း)
     # =========================================================================
-    with st.expander("⚙️ PDF Compression Settings (PDF ဖိုင်ဆိုဒ် ချုံ့ရန်)", expanded=False):
-        st.markdown("""
-            <style>
-            div[data-testid="stExpanderDetails"] div[data-testid="stHorizontalBlock"] {
-                align-items: center !important;
-            }
-            </style>
-        """, unsafe_allow_html=True)
+    st.markdown("""
+        <style>
+        /* 💡 Toggle နှင့် Selectbox ကို တစ်တန်းတည်း ညီနေစေရန် */
+        div[data-testid="stHorizontalBlock"] {
+            align-items: center !important;
+            margin-bottom: -10px !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
-        c_comp1, c_comp2 = st.columns([1.2, 2.5], vertical_alignment="center")
+    c_comp1, c_comp2 = st.columns([1.5, 2.5], vertical_alignment="center")
+    
+    with c_comp1:
+        do_compress = st.toggle("Compress Output PDFs", value=True)
         
-        with c_comp1:
-            do_compress = st.toggle("Compress Output PDFs", value=True)
-            
-        with c_comp2:
-            quality_labels = {
-                "📱 Medium (150 DPI - Standard)": "/ebook",
-                "📉 Low (72 DPI - Smallest)": "/screen",
-                "🖨️ High (300 DPI - Print)": "/printer",
-                "🎨 Prepress (Max Quality)": "/prepress"
-            }
-            selected_qual = st.selectbox("Quality", list(quality_labels.keys()), index=0, disabled=not do_compress, label_visibility="collapsed")
-            gs_setting = quality_labels[selected_qual] if do_compress else None
-            
-        if do_compress and not shutil.which("gs"):
-            st.warning("⚠️ Ghostscript ကို install မလုပ်ထားပါ။ Compression အလုပ်လုပ်မည် မဟုတ်ပါ။")
+    with c_comp2:
+        quality_labels = {
+            "📱 Medium (150 DPI - Standard)": "/ebook",
+            "📉 Low (72 DPI - Smallest)": "/screen",
+            "🖨️ High (300 DPI - Print)": "/printer",
+            "🎨 Prepress (Max Quality)": "/prepress"
+        }
+        # 💡 "Quality" label ကို လုံးဝဝှက်ထားပြီး Selectbox ကိုသာ ပြသပါမည်
+        selected_qual = st.selectbox("Quality", list(quality_labels.keys()), index=0, disabled=not do_compress, label_visibility="collapsed")
+        gs_setting = quality_labels[selected_qual] if do_compress else None
+        
+    if do_compress and not shutil.which("gs"):
+        st.warning("⚠️ Ghostscript ကို install မလုပ်ထားပါ။ Compression အလုပ်လုပ်မည် မဟုတ်ပါ။")
 
     if "up_key" not in st.session_state: st.session_state.up_key = 0
     if "air_merge_res" not in st.session_state: st.session_state.air_merge_res = None
@@ -359,7 +362,7 @@ def render_history_ui():
     # =========================================================================
     # 🌟 UI Layout (Main Tabs: Import Tools, Export Tools, & User Records)
     # =========================================================================
-    tab_import, tab_export, tab_records = st.tabs(["📥 Import Tools", "📤 Export Tools", "👥 User Records"])
+    tab_import, tab_export, tab_records = st.tabs(["📥 Import Tools", "📤 Export Tools", "👨🏻‍💻 User Records"])
 
     # ---------------------------------------------------------
     # 📥 IMPORT TOOLS TAB
@@ -898,7 +901,7 @@ def render_history_ui():
                     process_clicked = st.button("🔗 Process Air Docs Merge", use_container_width=True, key="process_air_docs_btn")
 
             with btn_col2:
-                if st.button("🗑️ Clear All Files", key="clear_air_merge_final", use_container_width=True):
+                if st.button("🗑️ Clear Files", key="clear_air_merge_final", use_container_width=True):
                     st.session_state.air_merge_res = None
                     clear_files(); st.rerun()
             

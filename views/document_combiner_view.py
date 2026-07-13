@@ -234,7 +234,7 @@ def render_document_combiner_ui():
     # -------------------------------------------------------------------------
     cb_col1, cb_col2 = st.columns(2)
         
-    if cb_col1.button("🔗 Merge Documents", use_container_width=True, key="m_all", type="secondary"):
+    if cb_col1.button("🔗 Merge Documents", use_container_width=True, key="m_all", type="primary"):
         if not u_i or not u_p: 
             st.error("⚠️ INV နှင့် PKL ဖိုင် နှစ်ခုလုံးကို အရင် Upload လုပ်ပေးပါ။")
         else:
