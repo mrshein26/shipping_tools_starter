@@ -15,6 +15,7 @@ from reportlab.lib.pagesizes import letter
 from pypdf import PdfReader, PdfWriter
 from pdf2image import convert_from_bytes
 import pytesseract
+import openpyxl
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from openpyxl.drawing.image import Image as ExcelImage
