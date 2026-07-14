@@ -29,46 +29,107 @@ if not st.session_state.logged_in:
 # ၄။ Theme စနစ်
 inject_theme()
 
-# 💡 နေရာလွတ် (Gap) များနှင့် Primary Button များကို ရေပြာရင့်ရောင်သို့ ပြောင်းလဲမည့် CSS
-st.markdown("""
+# ==========================================
+# 🖋️ Option 3: Elegant Minimalist (Slate) + 🔠 Inter Font
+# ==========================================
+is_dark_mode = st.session_state.get("theme", "Light") == "Dark"
+
+if is_dark_mode:
+    # 🌙 Dark Mode အတွက် 
+    btn_prim_bg = "#F8FAFC" 
+    btn_prim_hover = "#E2E8F0"
+    btn_prim_text = "#0F172A" 
+    
+    btn_sec_bg = "#0F172A"    
+    btn_sec_border = "#334155"
+    btn_sec_text = "#CBD5E1"
+    btn_sec_hover = "#1E293B"
+else:
+    # ☀️ Light Mode အတွက် (အရမ်းမရင့်တော့ဘဲ မျက်စိအေးသော ခဲပြာရောင် သို့ ပြောင်းထားပါသည်)
+    btn_prim_bg = "#334155"    # ပိုလင်းသော ခဲပြာရောင် (Slate 700)
+    btn_prim_hover = "#475569" # Mouse တင်လျှင် ပိုလင်းသွားမည်
+    btn_prim_text = "#FFFFFF" 
+    
+    btn_sec_bg = "#FFFFFF"
+    btn_sec_border = "#E2E8F0"
+    btn_sec_text = "#475569"
+    btn_sec_hover = "#F8FAFC"
+
+# 💡 Dynamic CSS (Font နှင့် ခလုတ်ဒီဇိုင်းများ)
+custom_css = f"""
 <style>
-.block-container {
+/* 🔠 Google Fonts မှ Inter ကို လှမ်းခေါ်ခြင်း */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+/* 🔠 App တစ်ခုလုံးရှိ စာသားများကို Inter Font သို့ ပြောင်းခြင်း */
+html, body, [class*="css"] {{
+    font-family: 'Inter', sans-serif !important;
+}}
+
+.block-container {{
     padding-top: 2rem !important;
     padding-bottom: 1rem !important;
-}
-hr {
+}}
+hr {{
     margin-top: 0.5rem !important;
     margin-bottom: 0.5rem !important;
-}
-h1, h2, h3, h4 {
+}}
+h1, h2, h3, h4 {{
     padding-bottom: 0.2rem !important;
     margin-bottom: 0.2rem !important;
-}
-div[data-testid="stRadio"] {
+    font-weight: 600 !important; /* ခေါင်းစဉ်များကို ပိုမိုသပ်ရပ်စေရန် */
+}}
+div[data-testid="stRadio"] {{
     margin-bottom: -1rem !important;
-}
-div[data-testid="stMarkdownContainer"] > p {
+}}
+div[data-testid="stMarkdownContainer"] > p {{
     margin-bottom: 0.5rem !important;
-}
+}}
 
-/* 🎨 အဓိက ခလုတ်များ (Primary Buttons) အားလုံးကို ရေပြာရင့်ရောင် ပြောင်းခြင်း */
-button[kind="primary"] {
-    background-color: #1E40AF !important; 
-    border: none !important;
-}
+/* ခလုတ်များအားလုံး၏ ယေဘုယျပုံစံ */
+div.stButton > button {{
+    display: inline-flex !important;
+    align-items: center !important;       
+    justify-content: center !important;   
+    padding: 0.5rem 1rem !important;
+    min-height: 42px !important;
+    border-radius: 6px !important; 
+    transition: all 0.2s ease-in-out !important;
+    font-family: 'Inter', sans-serif !important; /* ခလုတ်ထဲတွင်လည်း Inter ကို သေချာသုံးရန် */
+}}
 
-/* 💡 ခလုတ်အတွင်းရှိ စာသားများကို အဖြူရောင်နှင့် အထူ (Bold) ပြောင်းပေးခြင်း */
-button[kind="primary"] p {
-    color: #ffffff !important;
-    font-weight: bold !important;
-    font-size: 16px !important;
-}
+/* 🔥 Primary Buttons (Process, Extract, etc.) */
+div.stButton > button[kind="primary"] {{
+    background-color: {btn_prim_bg} !important;
+    border: 1px solid {btn_prim_bg} !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+}}
+div.stButton > button[kind="primary"] p {{
+    color: {btn_prim_text} !important;
+    font-weight: 500 !important; 
+    margin: 0 !important;        
+}}
+div.stButton > button[kind="primary"]:hover {{
+    background-color: {btn_prim_hover} !important; 
+    border-color: {btn_prim_hover} !important;
+}}
 
-button[kind="primary"]:hover {
-    background-color: #1e3a8a !important;
-}
+/* ⚪ Secondary Buttons (Clear Files, etc.) */
+div.stButton > button[kind="secondary"] {{
+    background-color: {btn_sec_bg} !important;
+    border: 1px solid {btn_sec_border} !important;
+}}
+div.stButton > button[kind="secondary"] p {{
+    color: {btn_sec_text} !important;
+    font-weight: 500 !important; 
+    margin: 0 !important;        
+}}
+div.stButton > button[kind="secondary"]:hover {{
+    background-color: {btn_sec_hover} !important; 
+}}
 </style>
-""", unsafe_allow_html=True)
+"""
+st.markdown(custom_css, unsafe_allow_html=True)
 
 # ၅။ Header Layout
 top_col1, top_col2 = st.columns([7, 3])
