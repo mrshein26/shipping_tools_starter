@@ -3,7 +3,7 @@ base = "light"
 primaryColor = "#FF4B4B"
 
 [server]
-maxUploadSize = 2000
+maxUploadSize = 500
 
 [ui]
 hideTopBar = true
