@@ -751,7 +751,12 @@ def render_history_ui():
             if c_lic2.button("🗑️ Clear Files", key="c_lic_clear", use_container_width=True): clear_files(); st.rerun()
 
         elif import_tool == "Extract Import Lists":
+            import zipfile # ZIP ဖိုင်ပြုလုပ်ရန်
+            
             st.info("Upload multiple **Packing List (Excel)** files to generate a consolidated summary grouped by Material Composition.")
+            
+            combine_files = st.toggle("ဖိုင်အားလုံးကို ပေါင်း၍ တစ်စောင်တည်းထုတ်မည် (Combine Output)", value=True)
+            
             import_files = st.file_uploader("Upload Packing Lists (Excel)", type=["xlsx"], accept_multiple_files=True, key=f"import_lists_{st.session_state.up_key}")
             
             c_imp1, c_imp2 = st.columns(2)
@@ -759,64 +764,12 @@ def render_history_ui():
                 if not import_files: 
                     st.error("❌ ကျေးဇူးပြု၍ Packing List Excel ဖိုင်(များ)ကို Upload တင်ပေးပါ။")
                 else:
-                    with st.spinner("Extracting and grouping data from all files..."):
+                    with st.spinner("Extracting and processing data..."):
                         try:
-                            data_rows = []
                             start_row = 14 
-                            invoice_no = "Invoice" 
                             
-                            for import_file in import_files:
-                                df_raw = pd.read_excel(import_file, header=None, engine='openpyxl')
-                                
-                                for r in range(min(12, len(df_raw))):
-                                    for c in range(len(df_raw.columns)):
-                                        cell_val = str(df_raw.iloc[r, c]).strip()
-                                        if "INVOICE NO" in cell_val.upper():
-                                            for next_c in range(c + 1, min(c + 4, len(df_raw.columns))):
-                                                val = str(df_raw.iloc[r, next_c]).strip()
-                                                if val and val != "nan":
-                                                    invoice_no = val
-                                                    break
-                                            break
-                                
-                                for i in range(start_row, len(df_raw)):
-                                    desc_val = str(df_raw.iloc[i, 0]).strip()
-                                    if desc_val.upper() == 'TOTAL:': break
-                                    
-                                    cartons = df_raw.iloc[i, 4]
-                                    if pd.notna(cartons) and str(cartons).replace('.', '', 1).isdigit():
-                                        composition = desc_val
-                                        if i + 1 < len(df_raw) and pd.isna(df_raw.iloc[i+1, 4]) and pd.notna(df_raw.iloc[i+1, 0]):
-                                             comp = str(df_raw.iloc[i+1, 0]).strip()
-                                             if comp and comp != 'nan': composition = comp
-                                             
-                                        # ==========================================
-                                        # 💡 Logic အသစ် (Composition % ပါမှသာ KNITTING PANEL / YARN ပေါင်းထည့်မည်)
-                                        # ==========================================
-                                        inv_upper = str(invoice_no).upper()
-                                        desc_upper = composition.upper()
-                                        
-                                        # '%' ပါဝင်မှသာ Composition Item အဖြစ် သတ်မှတ်မည်
-                                        if "%" in composition:
-                                            if inv_upper.startswith("LY") or "CUT PIECES" in desc_upper:
-                                                composition = f"{composition} KNITTING PANEL"
-                                            elif inv_upper.startswith("PX") or "YARN" in desc_upper:
-                                                composition = f"{composition} KNITTING YARN"
-                                        # ==========================================
-                                             
-                                        data_rows.append({
-                                            "Description": composition,
-                                            "Carton(S)": float(df_raw.iloc[i, 4]),
-                                            "Quantity": float(df_raw.iloc[i, 5]) if pd.notna(df_raw.iloc[i, 5]) else 0.0,
-                                            "N.W (KGs)": float(df_raw.iloc[i, 6]) if pd.notna(df_raw.iloc[i, 6]) else 0.0,
-                                            "G.W (KGs)": float(df_raw.iloc[i, 7]) if pd.notna(df_raw.iloc[i, 7]) else 0.0,
-                                            "Volume (CBM)": float(df_raw.iloc[i, 8]) if pd.notna(df_raw.iloc[i, 8]) else 0.0
-                                        })
-                            
-                            if not data_rows:
-                                st.warning("⚠️ ဖိုင်များထဲတွင် သတ်မှတ်ထားသော ပုံစံအတိုင်း အချက်အလက်များ ရှာမတွေ့ပါ။ Format ကို ပြန်စစ်ပါ။")
-                            else:
-                                df = pd.DataFrame(data_rows)
+                            def generate_excel_from_rows(rows, inv_no):
+                                df = pd.DataFrame(rows)
                                 summary_df = df.groupby("Description", sort=False).sum().reset_index()
                                 summary_df.insert(0, 'Sr. No.', range(1, 1 + len(summary_df)))
                                 
@@ -826,7 +779,7 @@ def render_history_ui():
                                 
                                 wb = openpyxl.Workbook()
                                 ws = wb.active
-                                ws.title = "Consolidated Summary"
+                                ws.title = "Consolidated Summary" if combine_files else f"{inv_no} Summary"
                                 
                                 headers = list(summary_df.columns)
                                 ws.append(headers)
@@ -863,25 +816,160 @@ def render_history_ui():
                                 ws.column_dimensions['D'].width = 15; ws.column_dimensions['E'].width = 15; ws.column_dimensions['F'].width = 15; ws.column_dimensions['G'].width = 15
                                 
                                 out_xl = io.BytesIO(); wb.save(out_xl); out_xl.seek(0)
-                                output_filename = f"{invoice_no} Summary Data.xlsx"
-                                
-                                # 💡 Discord Alert
-                                mm_time = datetime.utcnow() + timedelta(hours=6, minutes=30)
-                                try:
-                                    send_discord_alert(st.session_state.current_user, f"📦 **Extract Import Lists:** Successfully consolidated summary from {len(import_files)} files.", mm_time.strftime("%Y-%m-%d %H:%M:%S"))
-                                except: pass
+                                return out_xl.getvalue()
 
-                                st.session_state.import_lists_res = {"name": output_filename, "data": out_xl.getvalue(), "count": len(import_files)}
+                            # ==========================================
+                            # (၁) ခလုတ် ဖွင့်ထားလျှင် (ပေါင်းမည်)
+                            # ==========================================
+                            if combine_files:
+                                combined_rows = []
+                                combined_invoice_no = "Combined_Invoice"
+                                
+                                for import_file in import_files:
+                                    df_raw = pd.read_excel(import_file, header=None, engine='openpyxl')
+                                    inv_no = "Invoice"
+                                    
+                                    for r in range(min(12, len(df_raw))):
+                                        for c in range(len(df_raw.columns)):
+                                            cell_val = str(df_raw.iloc[r, c]).strip()
+                                            if "INVOICE NO" in cell_val.upper():
+                                                for next_c in range(c + 1, min(c + 4, len(df_raw.columns))):
+                                                    val = str(df_raw.iloc[r, next_c]).strip()
+                                                    if val and val != "nan":
+                                                        inv_no = val
+                                                        if combined_invoice_no == "Combined_Invoice": combined_invoice_no = val
+                                                        break
+                                                break
+                                                
+                                    for i in range(start_row, len(df_raw)):
+                                        desc_val = str(df_raw.iloc[i, 0]).strip()
+                                        if desc_val.upper() == 'TOTAL:': break
+                                        
+                                        cartons = df_raw.iloc[i, 4]
+                                        if pd.notna(cartons) and str(cartons).replace('.', '', 1).isdigit():
+                                            composition = desc_val
+                                            if i + 1 < len(df_raw) and pd.isna(df_raw.iloc[i+1, 4]) and pd.notna(df_raw.iloc[i+1, 0]):
+                                                 comp = str(df_raw.iloc[i+1, 0]).strip()
+                                                 if comp and comp != 'nan': composition = comp
+                                                 
+                                            inv_upper, desc_upper = str(inv_no).upper(), composition.upper()
+                                            if "%" in composition:
+                                                if inv_upper.startswith("LY") or "CUT PIECES" in desc_upper:
+                                                    composition = f"{composition} KNITTING PANEL"
+                                                elif inv_upper.startswith("PX") or "YARN" in desc_upper:
+                                                    composition = f"{composition} KNITTING YARN"
+                                                 
+                                            combined_rows.append({
+                                                "Description": composition, "Carton(S)": float(df_raw.iloc[i, 4]),
+                                                "Quantity": float(df_raw.iloc[i, 5]) if pd.notna(df_raw.iloc[i, 5]) else 0.0,
+                                                "N.W (KGs)": float(df_raw.iloc[i, 6]) if pd.notna(df_raw.iloc[i, 6]) else 0.0,
+                                                "G.W (KGs)": float(df_raw.iloc[i, 7]) if pd.notna(df_raw.iloc[i, 7]) else 0.0,
+                                                "Volume (CBM)": float(df_raw.iloc[i, 8]) if pd.notna(df_raw.iloc[i, 8]) else 0.0
+                                            })
+                                            
+                                if not combined_rows: 
+                                    st.warning("⚠️ ဖိုင်များထဲတွင် အချက်အလက်များ ရှာမတွေ့ပါ။")
+                                else:
+                                    excel_data = generate_excel_from_rows(combined_rows, combined_invoice_no)
+                                    st.session_state.import_lists_res = {"mode": "combine", "name": f"{combined_invoice_no} Summary Data.xlsx", "data": excel_data, "count": len(import_files)}
+
+                            # ==========================================
+                            # (၂) ခလုတ် ပိတ်ထားလျှင် (တစ်စောင်စီကို ZIP ဖြင့်ထုတ်မည်)
+                            # ==========================================
+                            else:
+                                processed_list = []
+                                
+                                for import_file in import_files:
+                                    file_rows = []
+                                    inv_no = "Invoice"
+                                    df_raw = pd.read_excel(import_file, header=None, engine='openpyxl')
+                                    
+                                    for r in range(min(12, len(df_raw))):
+                                        for c in range(len(df_raw.columns)):
+                                            cell_val = str(df_raw.iloc[r, c]).strip()
+                                            if "INVOICE NO" in cell_val.upper():
+                                                for next_c in range(c + 1, min(c + 4, len(df_raw.columns))):
+                                                    val = str(df_raw.iloc[r, next_c]).strip()
+                                                    if val and val != "nan":
+                                                        inv_no = val
+                                                        break
+                                                break
+                                                
+                                    for i in range(start_row, len(df_raw)):
+                                        desc_val = str(df_raw.iloc[i, 0]).strip()
+                                        if desc_val.upper() == 'TOTAL:': break
+                                        
+                                        cartons = df_raw.iloc[i, 4]
+                                        if pd.notna(cartons) and str(cartons).replace('.', '', 1).isdigit():
+                                            composition = desc_val
+                                            if i + 1 < len(df_raw) and pd.isna(df_raw.iloc[i+1, 4]) and pd.notna(df_raw.iloc[i+1, 0]):
+                                                 comp = str(df_raw.iloc[i+1, 0]).strip()
+                                                 if comp and comp != 'nan': composition = comp
+                                                 
+                                            inv_upper, desc_upper = str(inv_no).upper(), composition.upper()
+                                            if "%" in composition:
+                                                if inv_upper.startswith("LY") or "CUT PIECES" in desc_upper:
+                                                    composition = f"{composition} KNITTING PANEL"
+                                                elif inv_upper.startswith("PX") or "YARN" in desc_upper:
+                                                    composition = f"{composition} KNITTING YARN"
+                                                 
+                                            file_rows.append({
+                                                "Description": composition, "Carton(S)": float(df_raw.iloc[i, 4]),
+                                                "Quantity": float(df_raw.iloc[i, 5]) if pd.notna(df_raw.iloc[i, 5]) else 0.0,
+                                                "N.W (KGs)": float(df_raw.iloc[i, 6]) if pd.notna(df_raw.iloc[i, 6]) else 0.0,
+                                                "G.W (KGs)": float(df_raw.iloc[i, 7]) if pd.notna(df_raw.iloc[i, 7]) else 0.0,
+                                                "Volume (CBM)": float(df_raw.iloc[i, 8]) if pd.notna(df_raw.iloc[i, 8]) else 0.0
+                                            })
+                                            
+                                    if file_rows:
+                                        excel_data = generate_excel_from_rows(file_rows, inv_no)
+                                        processed_list.append({"name": f"{inv_no} Summary Data.xlsx", "data": excel_data})
+                                        
+                                if not processed_list: 
+                                    st.warning("⚠️ ဖိုင်များထဲတွင် အချက်အလက်များ ရှာမတွေ့ပါ။")
+                                else:
+                                    # 💡 သီးသန့်ဖိုင်များကို ZIP ဖိုင် တစ်ခုတည်းအဖြစ် ပေါင်းထုပ်ခြင်း
+                                    zip_buffer = io.BytesIO()
+                                    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                                        for file_info in processed_list:
+                                            zip_file.writestr(file_info["name"], file_info["data"])
+                                            
+                                    st.session_state.import_lists_res = {
+                                        "mode": "separate", 
+                                        "name": "Separate_Summaries.zip", 
+                                        "data": zip_buffer.getvalue(), 
+                                        "count": len(import_files)
+                                    }
+
+                            # 💡 Discord Alert
+                            mm_time = datetime.utcnow() + timedelta(hours=6, minutes=30)
+                            try:
+                                send_discord_alert(st.session_state.current_user, f"📦 **Extract Import Lists:** Successfully processed {len(import_files)} files (Combine: {combine_files}).", mm_time.strftime("%Y-%m-%d %H:%M:%S"))
+                            except: pass
                                 
                         except Exception as e:
                             st.error(f"❌ Error processing files: {e}")
         
-            if st.session_state.import_lists_res:
+            # ==========================================
+            # UI တွင် Download ခလုတ်များ ဖော်ပြခြင်း (တစ်ခါတည်းသာ)
+            # ==========================================
+            if st.session_state.get("import_lists_res"):
                 res = st.session_state.import_lists_res
-                st.success(f"✅ Successfully consolidated {res['count']} Excel files into one summary!")
-                st.download_button("📥 Download Consolidated Summary Excel", res["data"], res["name"], mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="btn_imp_download", use_container_width=True)
                 
-            if c_imp2.button("🗑️ Clear Files", key="c_imp_clear", use_container_width=True): clear_files(); st.rerun()
+                # ပေါင်းထားလျှင် (Excel တစ်စောင်တည်း)
+                if res["mode"] == "combine":
+                    st.success(f"✅ Successfully consolidated {res['count']} Excel files into one summary!")
+                    st.download_button("📥 Download Consolidated Summary Excel", res["data"], res["name"], mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="btn_imp_download_combine_final", use_container_width=True)
+                
+                # ခွဲထုတ်ထားလျှင် (ZIP ဖိုင် တစ်ခုတည်း)
+                elif res["mode"] == "separate":
+                    st.success(f"✅ Successfully processed {res['count']} Excel files separately into a ZIP file!")
+                    st.download_button("📥 Download All Files (ZIP)", res["data"], res["name"], mime="application/zip", key="btn_imp_download_zip_final", use_container_width=True)
+                
+            if c_imp2.button("🗑️ Clear Files", key="c_imp_clear_final", use_container_width=True): 
+                clear_files()
+                st.session_state.pop("import_lists_res", None)
+                st.rerun()
 
     # ---------------------------------------------------------
     # 📤 EXPORT TOOLS TAB
