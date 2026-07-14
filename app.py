@@ -2,7 +2,6 @@ import streamlit as st
 from PIL import Image
 from core.theme import inject_theme
 from views.login_view import login_screen
-from views.login_view import login_screen
 from views.pdf_stamper_view import render_pdf_stamper_ui  
 from views.pdf_compressor_view import render_pdf_compressor_ui 
 from views.document_combiner_view import render_document_combiner_ui
@@ -20,6 +19,10 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "current_user" not in st.session_state: 
     st.session_state.current_user = None
+
+# 💡 Theme ကို App ဖွင့်ဖွင့်ချင်း Light အဖြစ် ပုံသေသတ်မှတ်ခြင်း (Error မတက်စေရန်)
+if "theme" not in st.session_state:
+    st.session_state.theme = "Light"
 
 # ၃။ 🔐 Login စစ်ဆေးခြင်း
 if not st.session_state.logged_in:
@@ -55,7 +58,7 @@ else:
     btn_sec_text = "#475569"
     btn_sec_hover = "#F8FAFC"
 
-# 💡 Dynamic CSS (Font နှင့် ခလုတ်ဒီဇိုင်းများ)
+# 💡 Dynamic CSS (Font, ခလုတ်ဒီဇိုင်းများ နှင့် Input Boxes များ)
 custom_css = f"""
 <style>
 /* 🔠 Google Fonts မှ Inter ကို လှမ်းခေါ်ခြင်း */
@@ -86,7 +89,30 @@ div[data-testid="stMarkdownContainer"] > p {{
     margin-bottom: 0.5rem !important;
 }}
 
-/* ခလုတ်များအားလုံး၏ ယေဘုယျပုံစံ */
+/* ========================================================
+   🔲 စာရိုက်သွင်းရသော အကွက်များ (Input Boxes - Login အပါအဝင်)
+   ======================================================== */
+div[data-baseweb="input"] > div {{
+    background-color: #F8FAFC !important; 
+    border: 1px solid #E2E8F0 !important; 
+    border-radius: 6px !important;
+    transition: all 0.2s ease-in-out !important;
+}}
+div[data-baseweb="input"] > div:focus-within {{
+    border-color: #0F172A !important;
+    box-shadow: 0 0 0 1px #0F172A !important;
+}}
+div[data-baseweb="input"] input {{
+    color: #0F172A !important; 
+    font-weight: 500 !important;
+}}
+div[data-baseweb="input"] input::placeholder {{
+    color: #94A3B8 !important; 
+}}
+
+/* ========================================================
+   🔘 ခလုတ်များ (Buttons) ၏ ယေဘုယျပုံစံ
+   ======================================================== */
 div.stButton > button {{
     display: inline-flex !important;
     align-items: center !important;       
@@ -95,10 +121,10 @@ div.stButton > button {{
     min-height: 42px !important;
     border-radius: 6px !important; 
     transition: all 0.2s ease-in-out !important;
-    font-family: 'Inter', sans-serif !important; /* ခလုတ်ထဲတွင်လည်း Inter ကို သေချာသုံးရန် */
+    font-family: 'Inter', sans-serif !important; 
 }}
 
-/* 🔥 Primary Buttons (Process, Extract, etc.) */
+/* 🔥 Primary Buttons (Process, Extract, Sign In, etc.) */
 div.stButton > button[kind="primary"] {{
     background-color: {btn_prim_bg} !important;
     border: 1px solid {btn_prim_bg} !important;
