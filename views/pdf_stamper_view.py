@@ -80,8 +80,8 @@ class MemoryFile(io.BytesIO):
 # UI RENDER FUNCTION
 # =========================================================
 def render_pdf_stamper_ui():
-    st.subheader("📄 All-in-One Auto Stamping")
-    st.info("💡 Invoice နှင့် Packing List များကို  Stamping, TR/OT တွင် Rex စာသားထည့်ရန်။")
+    st.subheader("📄 All-in-One Automation")
+    st.info("Stamping, Insert Rex Text (TR/OT), Auto merging (on/off)")
 
     # Session States
     if "stamper_up_key" not in st.session_state: st.session_state.stamper_up_key = 0

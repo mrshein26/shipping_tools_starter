@@ -24,8 +24,6 @@ from views.pdf_stamper_view import extract_files  # တူညီသော extrac
 # =========================================================
 def render_document_combiner_ui():
     st.subheader("🗂️ Document Combiner")
-    st.write("Google Drive နှင့် ချိတ်ဆက်၍ Sketch/Care Labels များ စစ်ဆေးခြင်းနှင့် စာရွက်စာတမ်းများ ပေါင်းစပ်ခြင်း စနစ်")
-
     # Session States များ စတင်သတ်မှတ်ခြင်း
     if "up_key" not in st.session_state: st.session_state.up_key = 0
     if "combiner_res" not in st.session_state: st.session_state.combiner_res = None
@@ -83,7 +81,7 @@ def render_document_combiner_ui():
     # -------------------------------------------------------------------------
     # 🔍 SKC & Care Labels Checker Section
     # -------------------------------------------------------------------------
-    if st.button("🔍 Check Missing Sketch & Care Label in Drive", use_container_width=True, type="primary"):
+    if st.button("🔍 Missing Sketch & Care Label ", use_container_width=True, type="primary"):
         if not u_i and not u_e:
             st.error("⚠️ လိုအပ်သော PO နံပါတ်များ သိရှိရန် INV ဖိုင်များ (သို့မဟုတ်) Excel ဖိုင်ကို အရင် Upload လုပ်ပေးပါ။")
         else:
@@ -218,9 +216,9 @@ def render_document_combiner_ui():
                             
                             st.divider()
                             st.download_button(
-                                label="📥 Download Standard Missing Report (Excel)",
+                                label="📥 Download Missing Report (Excel)",
                                 data=towrite.getvalue(),
-                                file_name="Missing_SKC_and_CareLabels_Report.xlsx",
+                                file_name="Missing SKC & CareLabels_Report.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                 use_container_width=True
                             )
@@ -375,7 +373,7 @@ def render_document_combiner_ui():
                     st.session_state.combiner_res = {"count": count, "zip_data": zip_b.getvalue() if count > 0 else None, "error_logs": error_logs}
                     st.rerun()
 
-    if cb_col2.button("🗑️ Clear All Files", key="clr_merge_all", use_container_width=True): 
+    if cb_col2.button("🗑️ Clear Files", key="clr_merge_all", use_container_width=True): 
         clear_files()
 
     # ਰလဒ်များအား ခလုတ်အပြင်ဘက်တွင် သန့်ရှင်းစွာ ပြသခြင်း

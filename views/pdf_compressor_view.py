@@ -8,7 +8,7 @@ import shutil
 from core.utils import add_log
 
 def process_and_compress_pdf(pdf_data, pdf_name, folder_name, temp_dir, gs_setting, zf, stats):
-    """Reduce PDF File Size, Folder အလိုက် Zip အတွင်းသို့ ပြန်ထည့်ပေးမည့် လုပ်ငန်းစဉ်"""
+    """Folder အလိုက် Zip အတွင်းသို့ ပြန်ထည့်ပေးမည့် လုပ်ငန်းစဉ်"""
     orig_size = len(pdf_data)
     stats['original_size'] += orig_size
     
@@ -50,7 +50,6 @@ def process_and_compress_pdf(pdf_data, pdf_name, folder_name, temp_dir, gs_setti
 
 def render_pdf_compressor_ui():
     st.subheader("🗜️ Multi-Quality PDF Compressor")
-    st.write("Reduce PDF File Size")
     
     if not shutil.which("gs"):
         st.error("⚠️ Server တွင် Ghostscript (`gs`) ကို install လုပ်ထားခြင်း မရှိပါ။ သင့်စက်တွင် `brew install ghostscript` သို့မဟုတ် Cloud `packages.txt` တွင် `ghostscript` ထည့်ပေးပါ။")
