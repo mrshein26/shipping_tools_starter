@@ -61,6 +61,13 @@ else:
 # 💡 Dynamic CSS (Font, ခလုတ်ဒီဇိုင်းများ နှင့် Input Boxes များ)
 custom_css = f"""
 <style>
+/* 🚫 Streamlit Menu, Footer နှင့် အောက်ခြေ ညာဘက်ရှိ Cloud Badge များကို ဖျောက်ရန် */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+.viewerBadge_container {display: none !important;}
+.viewerBadge_link {display: none !important;}
+[data-testid="stDecoration"] {display: none !important;}
 /* 🔠 Google Fonts မှ Inter ကို လှမ်းခေါ်ခြင်း */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
