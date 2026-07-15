@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import zipfile
 import fitz  # PyMuPDF
 import io
 import os
@@ -1675,8 +1674,12 @@ def render_history_ui():
         elif export_tool == "Extract Inv no":
             st.info("Upload **PDF** or **ZIP files** to extract H&M invoice data cleanly into a Standard Excel format.")
             
-            if "hm_ext_res" not in st.session_state: st.session_state.hm_ext_res = None
-            
+            # 💡 Error မတက်စေရန် Default Keys များ ကြိုတင်သတ်မှတ်ခြင်း
+            if "hm_ext_res" not in st.session_state: 
+                st.session_state.hm_ext_res = None
+            if "up_key" not in st.session_state: 
+                st.session_state.up_key = 0
+                
             uploaded_hm_files = st.file_uploader("Upload PDF or ZIP", type=["pdf", "zip"], accept_multiple_files=True, key=f"hm_uploader_{st.session_state.up_key}")
             
             c_hm1, c_hm2 = st.columns(2)
@@ -1686,6 +1689,7 @@ def render_history_ui():
                     st.error("Please upload PDF or ZIP files.")
                 else:
                     with st.spinner("Extracting data..."):
+                        # 💡 အပေါ်တွင် process_hm_files function ကို ကြိုတင် ရေးသားထားရန် လိုအပ်ပါသည်
                         records = process_hm_files(uploaded_hm_files)
                         
                         if records:
@@ -1697,10 +1701,11 @@ def render_history_ui():
                                 format_hm_excel(writer, df)
                                 
                             # 💡 Discord Alert
-                            mm_time = datetime.utcnow() + timedelta(hours=6, minutes=30)
                             try:
+                                mm_time = datetime.utcnow() + timedelta(hours=6, minutes=30)
                                 send_discord_alert(st.session_state.current_user, f"📝 **Extract INV no:** Extracted {len(records)} records.", mm_time.strftime("%Y-%m-%d %H:%M:%S"))
-                            except: pass
+                            except: 
+                                pass
 
                             st.session_state.hm_ext_res = {"count": len(records), "data": output.getvalue(), "df": df}
                         else:
@@ -1714,7 +1719,7 @@ def render_history_ui():
                 st.download_button(
                     label="📥 Download Excel File",
                     data=res["data"],
-                    file_name="HM_Invoice & Date_.xlsx", 
+                    file_name="HM_Invoice_Data.xlsx", 
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     key="hm_download_btn",
                     use_container_width=True
@@ -1722,7 +1727,11 @@ def render_history_ui():
                 
             if c_hm2.button("🗑️ Clear Files", key="c_hm_clear", use_container_width=True):
                 st.session_state.hm_ext_res = None
-                clear_files(); st.rerun()
+                try:
+                    clear_files()
+                except:
+                    pass
+                st.rerun()
 
     # ---------------------------------------------------------
     # 👥 USER RECORDS TAB
