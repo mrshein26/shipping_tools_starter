@@ -1084,6 +1084,7 @@ def render_history_ui():
                                     if data not in groups[target_eno]: groups[target_eno].append(data)
 
                             zip_buf = io.BytesIO(); count = 0
+                            import zipfile # 💡 ဤနေရာတွင် သီးသန့် ထပ်ခေါ်ပေးလိုက်ပါ (အပေါ်က Error ကို ကျော်ဖြတ်ရန်)
                             with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
                                 for eno, members in groups.items():
                                     if len(members) >= 2:
