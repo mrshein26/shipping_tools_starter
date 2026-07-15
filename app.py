@@ -1,7 +1,5 @@
 import streamlit as st
-import streamlit as st
 import pandas as pd
-import zipfile
 from PIL import Image
 from core.theme import inject_theme
 from views.login_view import login_screen
