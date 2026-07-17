@@ -57,18 +57,50 @@ def authenticate_gdrive_local():
     except Exception:
         return None
 
-def get_wh_local(pdf_f):
-    try:
-        pdf_f.seek(0)
-        with pdfplumber.open(pdf_f) as p:
-            for page in p.pages:
-                text = page.extract_text() or ""
-                if "INVOICE" in text.upper():
-                    m = re.search(r"\b([A-Z]{3}\d{3})\b", text)
-                    if m:
-                        return m.group(1)
-        return None
-    except: return None
+# 💡 [Hybrid Method for Stamper] (၂) မျိုးခွဲယူသည့် စနစ်
+def get_po_and_wh_local(file_bytes, filename):
+    po_no = None
+    wh_code = None
+    
+    if filename.startswith("Temp_"):
+        # ၁။ 'Temp_' ဖြင့် စတင်ပါက PDF အတွင်းစာသား (Text) မှ ဆွဲထုတ်မည်
+        try:
+            doc = fitz.open(stream=file_bytes, filetype="pdf")
+            text = "".join([page.get_text("text") for page in doc])
+            
+            po_match = re.search(r"(?:H&M|HM)\s*Order\s*No[^\d]*(\d{6})", text, re.IGNORECASE)
+            if po_match: po_no = po_match.group(1)
+                
+            wh_match = re.search(r"\b([A-Z]{2,3}\d{3})\b", text)
+            if wh_match: wh_code = wh_match.group(1).upper()
+            
+            doc.close()
+        except Exception:
+            pass
+    else:
+        # ၂။ ပုံမှန်ဖိုင်ဆိုပါက ဖိုင်နာမည် (Filename) မှ ဆွဲထုတ်မည်
+        po_match = re.search(r'(\d{6})', filename)
+        if po_match: po_no = po_match.group(1)
+        
+        wh_match = re.search(r'\b([A-Z]{2,3}\d{3})\b', filename, re.IGNORECASE)
+        if wh_match: wh_code = wh_match.group(1).upper()
+        
+        # (Fallback: ပုံမှန်ဖိုင်ဖြစ်သော်လည်း နာမည်၌ ရှာမရပါက အတွင်းသို့ဝင်ဖတ်ပေးမည်)
+        if not po_no or not wh_code:
+            try:
+                doc = fitz.open(stream=file_bytes, filetype="pdf")
+                text = "".join([page.get_text("text") for page in doc])
+                if not po_no:
+                    pm = re.search(r"(?:H&M|HM)\s*Order\s*No[^\d]*(\d{6})", text, re.IGNORECASE)
+                    if pm: po_no = pm.group(1)
+                if not wh_code:
+                    wm = re.search(r"\b([A-Z]{2,3}\d{3})\b", text)
+                    if wm: wh_code = wm.group(1).upper()
+                doc.close()
+            except Exception:
+                pass
+                
+    return po_no, wh_code
 
 class MemoryFile(io.BytesIO):
     """Memory ပေါ်ရှိ Bytes များကို UploadedFile ပုံစံအဖြစ် အသုံးပြုနိုင်ရန် Wrapper Class"""
@@ -113,7 +145,7 @@ def render_pdf_stamper_ui():
 
     c1, c2 = st.columns(2)
     
-    if c1.button("⚡ Process All Files", use_container_width=True, type="primary"):
+    if c1.button("⚡ Process All Files", width="stretch", type="primary"):
         if not uploaded_raw_files:
             st.error("❌ ကျေးဇူးပြု၍ PDF သို့မဟုတ် ZIP ဖိုင်များကို အရင် Upload တင်ပေးပါ။")
         else:
@@ -149,7 +181,7 @@ def render_pdf_stamper_ui():
                             else:
                                 doc_type = "PackingList" if "pl" in up_pdf.name.lower() else "Invoice"
 
-                            # 🏷️ PO & Dest
+                            # 🏷️ PO & Dest (For Filename Generation inside ZIP)
                             hm_m = re.search(r"H&M Order No:\s*(\d{6})", text)
                             dest_m = re.search(r"Final Destination:.*?\b([A-Z]{2})\b", text, re.DOTALL)
                             po = hm_m.group(1).strip() if hm_m else ""
@@ -267,10 +299,22 @@ def render_pdf_stamper_ui():
                             pkl_map = {}
                             ext_u_s = []
                             
+                            # 💡 1. PKL များကို Map လုပ်ခြင်း (WH Code ဖမ်းယူခြင်းအပါအဝင်)
+                            for p in ext_u_p:
+                                m = re.search(r"(\d{6})(?:\s+|-)?([A-Za-z]{2}).*?\b([A-Z]{2,3}\d{3})\b", p.name, re.IGNORECASE)
+                                if m: 
+                                    pkl_map[(m.group(1), m.group(2).upper(), m.group(3).upper())] = p
+
                             req_pos = set()
+                            inv_infos = [] 
+                            
+                            # 💡 2. Invoice ဖိုင်များမှ PO နှင့် WH ဆွဲထုတ်ခြင်း (Hybrid Method)
                             for inv in ext_u_i:
-                                po_m = re.search(r"(\d{6})", inv.name)
-                                if po_m: req_pos.add(po_m.group(1))
+                                inv.seek(0)
+                                file_bytes = inv.read()
+                                po, wh = get_po_and_wh_local(file_bytes, inv.name)
+                                inv_infos.append((inv, po, wh, file_bytes))
+                                if po: req_pos.add(po)
 
                             for po in req_pos:
                                 try:
@@ -293,32 +337,30 @@ def render_pdf_stamper_ui():
                                 m = re.search(r"(\d{6})", s.name)
                                 if m: skc_pos.add(m.group(1))
                             
-                            for p in ext_u_p:
-                                m = re.search(r"(\d{6})(?:\s+|-)?([A-Za-z]{2}).*?([A-Z]{3}\d{3})", p.name, re.IGNORECASE)
-                                if m: 
-                                    pkl_map[(m.group(1), m.group(2).upper(), m.group(3).upper())] = p
-                            
                             zip_b = io.BytesIO()
                             count = 0
                             error_logs = []
                             used_pkls = set()
 
                             with zipfile.ZipFile(zip_b, "w", zipfile.ZIP_DEFLATED) as zf:
-                                for inv in ext_u_i:
-                                    po_m = re.search(r"(\d{6})(?:\s+|-)?([A-Z]{2,})?", inv.name, re.IGNORECASE)
-                                    if po_m:
-                                        po = po_m.group(1)
-                                        sku = po_m.group(2).upper() if po_m.group(2) else "" 
-                                        wh = get_wh_local(inv)
-                                        
-                                        if not sku and wh:
+                                for inv, po, wh, file_bytes in inv_infos:
+                                    sku = ""
+                                    # 'Temp_' ဖြင့်မစပါက SKU ကို ဖိုင်နာမည်မှ အရင်ယူရန်ကြိုးစားမည်
+                                    if not inv.name.startswith("Temp_"):
+                                        sku_m = re.search(r"(\d{6})(?:\s+|-)?([A-Z]{2,})?", inv.name, re.IGNORECASE)
+                                        if sku_m and sku_m.group(2):
+                                            sku = sku_m.group(2).upper()
+                                    
+                                    if po and wh:
+                                        if not sku:
+                                            # SKU မရှိပါက PKL Map ထဲမှ PO နှင့် WH တူညီသော SKU ကို လှမ်းယူမည်
                                             matched_keys = [k for k in pkl_map.keys() if k[0] == po and k[2] == wh]
                                             if matched_keys: sku = matched_keys[0][1]
 
-                                        if sku and wh and (po, sku, wh) in pkl_map:
+                                        if sku and (po, sku, wh) in pkl_map:
                                             merger = PdfWriter()
-                                            inv.seek(0)
-                                            merger.append(inv)
+                                            inv_pdf = io.BytesIO(file_bytes)
+                                            merger.append(inv_pdf)
                                             
                                             pkl_file = pkl_map[(po, sku, wh)]
                                             pkl_file.seek(0)
@@ -374,14 +416,17 @@ def render_pdf_stamper_ui():
                                             if po not in skc_pos:
                                                 error_logs.append({"Type": "Sketch", "File Name": f"PO: {po}", "Status": "Warning", "Reason": "Missing Sketch file in Drive"})
                                         else:
-                                            reason = "Matching PKL not found" if wh else "Warehouse ID not found in Invoice"
-                                            error_logs.append({"File Name": inv.name, "Status": "Failed", "Reason": reason, "Type": "Invoice"})
+                                            error_logs.append({"File Name": inv.name, "Status": "Failed", "Reason": f"Matching PKL not found for PO:{po}, WH:{wh}", "Type": "Invoice"})
                                     else:
-                                        error_logs.append({"File Name": inv.name, "Status": "Skipped", "Reason": "PO Number missing in name", "Type": "Invoice"})
+                                        if not po:
+                                            reason = "PO Number missing in both name and content"
+                                        else:
+                                            reason = "Warehouse ID not found in Invoice content"
+                                        error_logs.append({"File Name": inv.name, "Status": "Skipped", "Reason": reason, "Type": "Invoice"})
                                 
                                 for (p_po, p_sku, p_wh), p_file in pkl_map.items(): 
                                     if (p_po, p_sku, p_wh) not in used_pkls:
-                                        error_logs.append({"File Name": p_file.name, "Status": "Failed", "Reason": "Matching Invoice not found", "Type": "Packing List"})
+                                        error_logs.append({"File Name": p_file.name, "Status": "Failed", "Reason": f"Matching Invoice not found for PO:{p_po}, WH:{p_wh}", "Type": "Packing List"})
                                             
                             if count > 0:
                                 add_log(st.session_state.current_user, f"Auto-Stamped & Merged {count} docs")
@@ -392,7 +437,7 @@ def render_pdf_stamper_ui():
                                 "error_logs": error_logs
                             }
 
-    if c2.button("🗑️ Clear Files", use_container_width=True): 
+    if c2.button("🗑️ Clear Files", width="stretch"): 
         clear_files()
         
     # =========================================================
@@ -408,7 +453,7 @@ def render_pdf_stamper_ui():
                 data=res["data"], 
                 file_name="Stamped_Processed_Files.zip", 
                 mime="application/zip",
-                use_container_width=True
+                width="stretch"
             )
             
         elif res.get("type") == "merged":
@@ -419,7 +464,7 @@ def render_pdf_stamper_ui():
                     data=res["data"], 
                     file_name="Auto_Stamped_and_Merged_Documents.zip", 
                     mime="application/zip",
-                    use_container_width=True
+                    width="stretch"
                 )
             else: 
                 st.warning("⚠️ No matching INV and PKL found to merge.")
@@ -432,7 +477,7 @@ def render_pdf_stamper_ui():
                 df_errors = df_errors[["Sr No", "Type", "File Name", "Status", "Reason"]]
                 
                 def highlight_alt_rows(x): return ['background-color: rgba(59, 130, 246, 0.05)' if i % 2 == 0 else '' for i in range(len(x))]
-                st.dataframe(df_errors.style.apply(highlight_alt_rows, axis=0), use_container_width=True, hide_index=True)
+                st.dataframe(df_errors.style.apply(highlight_alt_rows, axis=0), width="stretch", hide_index=True)
                 
                 csv_data = df_errors.to_csv(index=False).encode('utf-8')
                 st.download_button(
@@ -440,5 +485,5 @@ def render_pdf_stamper_ui():
                     data=csv_data, 
                     file_name="Missing_Docs_Report.csv", 
                     mime="text/csv", 
-                    use_container_width=True
+                    width="stretch"
                 )
