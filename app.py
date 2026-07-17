@@ -1,5 +1,4 @@
 import streamlit as st
-import pandas as pd
 from PIL import Image
 from core.theme import inject_theme
 from views.login_view import login_screen
@@ -9,6 +8,7 @@ from views.document_combiner_view import render_document_combiner_ui
 from views.extract_forms_view import render_extract_forms_ui
 from views.history_view import render_history_ui  
 from core.utils import add_log
+from views.booking_forms_view import render_booking_forms_ui
 
 # ၁။ Page Config
 # 💡 ဤနေရာတွင် ဖိုင်နာမည်ကို "TH Logo.png" ဟု အတိအကျ ပြင်ဆင်ထားပါသည်
@@ -62,13 +62,8 @@ else:
 # 💡 Dynamic CSS (Font, ခလုတ်ဒီဇိုင်းများ နှင့် Input Boxes များ)
 custom_css = f"""
 <style>
-/* 🚫 Streamlit Menu, Footer နှင့် အောက်ခြေ ညာဘက်ရှိ Cloud Badge များကို ဖျောက်ရန် */
-#MainMenu {{visibility: hidden;}}
-footer {{visibility: hidden;}}
-header {{visibility: hidden;}}
-.viewerBadge_container {{display: none !important;}}
-.viewerBadge_link {{display: none !important;}}
-[data-testid="stDecoration"] {{display: none !important;}}
+/* 🔠 Google Fonts မှ Inter ကို လှမ်းခေါ်ခြင်း */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
 /* 🔠 App တစ်ခုလုံးရှိ စာသားများကို Inter Font သို့ ပြောင်းခြင်း */
 html, body, [class*="css"] {{
@@ -182,7 +177,7 @@ with top_col2:
             st.session_state.theme = current_theme
             st.rerun()
     with logout_col:
-        if st.button("⏻ Log Out", use_container_width=True):
+        if st.button("⏻ Log Out", width="stretch"):
             add_log(st.session_state.current_user, "Logged Out")
             st.session_state.logged_in = False
             st.rerun()
@@ -190,7 +185,7 @@ with top_col2:
 st.markdown("---")
 
 # ၆။ 🛡️ Menu Bar စနစ်
-available_tools = ["PDF Stamper", "PDF Compressor", "Extract Forms", "Document Combiner"]
+available_tools = ["PDF Stamper", "PDF Compressor", "Extract Forms", "Document Combiner","Booking Forms"]
 
 if st.session_state.current_user == "admin":
     available_tools.append("Admin Tools") 
@@ -209,5 +204,7 @@ elif tool == "Extract Forms":
     render_extract_forms_ui()
 elif tool == "Document Combiner":
     render_document_combiner_ui()
+elif tool == "Booking Forms":
+    render_booking_forms_ui()    
 elif tool == "Admin Tools":
     render_history_ui()
