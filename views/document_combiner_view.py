@@ -14,17 +14,18 @@ from google.oauth2 import service_account
 
 # PDFplumber & pypdf Imports
 import pdfplumber
+import fitz  # PyMuPDF
 from pypdf import PdfWriter
 
 from core.utils import add_log
-from views.pdf_stamper_view import extract_files  # တူညီသော extract_files အား ပြန်လည်အသုံးပြုခြင်း
+from views.pdf_stamper_view import extract_files  
 
 # =========================================================
 # TOOL 2: DOCUMENT COMBINER
 # =========================================================
 def render_document_combiner_ui():
     st.subheader("🗂️ Document Combiner")
-    # Session States များ စတင်သတ်မှတ်ခြင်း
+    
     if "up_key" not in st.session_state: st.session_state.up_key = 0
     if "combiner_res" not in st.session_state: st.session_state.combiner_res = None
 
@@ -53,21 +54,51 @@ def render_document_combiner_ui():
         "CERTIFICADO DE ORIGEN (CL)": "1gGgzOlMjR4zVCVC9iglOzhEDam-ysFAF"
     }
 
-    def get_wh(pdf_f):
-        try:
-            pdf_f.seek(0)
-            with pdfplumber.open(pdf_f) as p:
-                for page in p.pages:
-                    text = page.extract_text() or ""
-                    if "INVOICE" in text.upper():
-                        m = re.search(r"\b([A-Z]{3}\d{3})\b", text)
-                        if m:
-                            return m.group(1)
-            return None
-        except: 
-            return None
+    # 💡 [Explicit Method] လူကြီးမင်း ပြောထားသည့်အတိုင်း (၂) မျိုးခွဲယူသည့် စနစ်
+    def get_po_and_wh(file_bytes, filename):
+        po_no = None
+        wh_code = None
+        
+        if filename.startswith("Temp_"):
+            # ၁။ 'Temp_' ဖြင့် စတင်ပါက PDF အတွင်းစာသား (Text) မှ ဆွဲထုတ်မည်
+            try:
+                doc = fitz.open(stream=file_bytes, filetype="pdf")
+                text = "".join([page.get_text("text") for page in doc])
+                
+                po_match = re.search(r"(?:H&M|HM)\s*Order\s*No[^\d]*(\d{6})", text, re.IGNORECASE)
+                if po_match: po_no = po_match.group(1)
+                    
+                wh_match = re.search(r"\b([A-Z]{2,3}\d{3})\b", text)
+                if wh_match: wh_code = wh_match.group(1).upper()
+                
+                doc.close()
+            except Exception:
+                pass
+        else:
+            # ၂။ ပုံမှန်ဖိုင်ဆိုပါက ဖိုင်နာမည် (Filename) မှ ဆွဲထုတ်မည်
+            po_match = re.search(r'(\d{6})', filename)
+            if po_match: po_no = po_match.group(1)
+            
+            wh_match = re.search(r'\b([A-Z]{2,3}\d{3})\b', filename, re.IGNORECASE)
+            if wh_match: wh_code = wh_match.group(1).upper()
+            
+            # (Fallback: ပုံမှန်ဖိုင်ဖြစ်သော်လည်း နာမည်၌ ရှာမရပါက အတွင်းသို့ဝင်ဖတ်ပေးမည်)
+            if not po_no or not wh_code:
+                try:
+                    doc = fitz.open(stream=file_bytes, filetype="pdf")
+                    text = "".join([page.get_text("text") for page in doc])
+                    if not po_no:
+                        pm = re.search(r"(?:H&M|HM)\s*Order\s*No[^\d]*(\d{6})", text, re.IGNORECASE)
+                        if pm: po_no = pm.group(1)
+                    if not wh_code:
+                        wm = re.search(r"\b([A-Z]{2,3}\d{3})\b", text)
+                        if wm: wh_code = wm.group(1).upper()
+                    doc.close()
+                except Exception:
+                    pass
+                    
+        return po_no, wh_code
 
-    # Variables များကို ကြိုတင်ကြေညာခြင်း
     u_i, u_p, u_e = None, None, None
 
     col1, col2 = st.columns(2)
@@ -81,7 +112,7 @@ def render_document_combiner_ui():
     # -------------------------------------------------------------------------
     # 🔍 SKC & Care Labels Checker Section
     # -------------------------------------------------------------------------
-    if st.button("🔍 Missing Sketch & Care Label ", use_container_width=True, type="primary"):
+    if st.button("🔍 Missing Sketch & Care Label ", width="stretch", type="primary"):
         if not u_i and not u_e:
             st.error("⚠️ လိုအပ်သော PO နံပါတ်များ သိရှိရန် INV ဖိုင်များ (သို့မဟုတ်) Excel ဖိုင်ကို အရင် Upload လုပ်ပေးပါ။")
         else:
@@ -169,14 +200,14 @@ def render_document_combiner_ui():
                         with tab_skc:
                             if missing_skcs:
                                 st.warning(f"⚠️ Drive တွင် မရှိသေးသော Sketch များ စစုပေါင်း: **{len(missing_skcs)}** ခု")
-                                st.dataframe(df_skc, use_container_width=True, hide_index=True)
+                                st.dataframe(df_skc, width="stretch", hide_index=True)
                             else:
                                 st.success("✅ လိုအပ်သော Sketch ဖိုင်များအားလုံး Drive တွင် ရှိပြီးဖြစ်ပါသည်။")
                                 
                         with tab_cl:
                             if missing_carelabels:
                                 st.warning(f"⚠️ Drive တွင် မရှိသေးသော Care Labels များ စုစုပေါင်း: **{len(missing_carelabels)}** ခု")
-                                st.dataframe(df_cl, use_container_width=True, hide_index=True)
+                                st.dataframe(df_cl, width="stretch", hide_index=True)
                             else:
                                 st.success("✅ လိုအပ်သော Care Label ဖိုင်များအားလုံး Drive တွင် ရှိပြီးဖြစ်ပါသည်။")
                         
@@ -220,7 +251,7 @@ def render_document_combiner_ui():
                                 data=towrite.getvalue(),
                                 file_name="Missing SKC & CareLabels_Report.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                use_container_width=True
+                                width="stretch"
                             )
                             log_msg = f"Checked Missing: Found {len(missing_skcs)} SKCs, {len(missing_carelabels)} CareLabels"
                             add_log(st.session_state.get('current_user', 'Unknown'), log_msg)
@@ -232,7 +263,7 @@ def render_document_combiner_ui():
     # -------------------------------------------------------------------------
     cb_col1, cb_col2 = st.columns(2)
         
-    if cb_col1.button("🔗 Merge Documents", use_container_width=True, key="m_all", type="primary"):
+    if cb_col1.button("🔗 Merge Documents", width="stretch", key="m_all", type="primary"):
         if not u_i or not u_p: 
             st.error("⚠️ INV နှင့် PKL ဖိုင် နှစ်ခုလုံးကို အရင် Upload လုပ်ပေးပါ။")
         else:
@@ -244,12 +275,25 @@ def render_document_combiner_ui():
                 ext_u_s = []
 
                 drive_service = authenticate_gdrive()
-                if drive_service:
-                    req_pos = set()
-                    for inv in ext_u_i:
-                        po_m = re.search(r"(\d{6})", inv.name)
-                        if po_m: req_pos.add(po_m.group(1))
+                
+                # PKL များကို Map လုပ်ခြင်း
+                for p in ext_u_p:
+                    m = re.search(r"(\d{6})(?:\s+|-)?([A-Za-z]{2}).*?\b([A-Z]{2,3}\d{3})\b", p.name, re.IGNORECASE)
+                    if m: 
+                        pkl_map[(m.group(1), m.group(2).upper(), m.group(3).upper())] = p
+                
+                req_pos = set()
+                inv_infos = [] 
+                
+                # Invoice ဖိုင်များမှ PO နှင့် WH ဆွဲထုတ်ခြင်း (Hybrid Method)
+                for inv in ext_u_i:
+                    inv.seek(0)
+                    file_bytes = inv.read()
+                    po, wh = get_po_and_wh(file_bytes, inv.name)
+                    inv_infos.append((inv, po, wh, file_bytes))
+                    if po: req_pos.add(po)
 
+                if drive_service:
                     up_skcs = {}
                     for po in req_pos:
                         try:
@@ -268,120 +312,121 @@ def render_document_combiner_ui():
                                 ext_u_s.append(fh)
                         except: pass 
 
-                    ext_u_o_s = ext_u_o + ext_u_s
-                    skc_pos = set()
-                    for s in ext_u_s:
-                        m = re.search(r"(\d{6})", s.name)
-                        if m: skc_pos.add(m.group(1))
-                    
-                    for p in ext_u_p:
-                        m = re.search(r"(\d{6})(?:\s+|-)?([A-Za-z]{2}).*?([A-Z]{3}\d{3})", p.name, re.IGNORECASE)
-                        if m: 
-                            pkl_map[(m.group(1), m.group(2).upper(), m.group(3).upper())] = p
-                    
-                    for e in ext_u_o_s:
-                        m = re.search(r"(\d{6})", e.name)
-                        if m:
-                            po_num = m.group(1)
-                            if po_num not in ex_map: ex_map[po_num] = []
-                            ex_map[po_num].append(e)
-                    
-                    zip_b = io.BytesIO(); count = 0
-                    error_logs = []; used_pkls = set()
+                ext_u_o_s = ext_u_o + ext_u_s
+                skc_pos = set()
+                for s in ext_u_s:
+                    m = re.search(r"(\d{6})", s.name)
+                    if m: skc_pos.add(m.group(1))
+                
+                for e in ext_u_o_s:
+                    m = re.search(r"(\d{6})", e.name)
+                    if m:
+                        po_num = m.group(1)
+                        if po_num not in ex_map: ex_map[po_num] = []
+                        ex_map[po_num].append(e)
+                
+                zip_b = io.BytesIO(); count = 0
+                error_logs = []; used_pkls = set()
 
-                    with zipfile.ZipFile(zip_b, "w", zipfile.ZIP_DEFLATED) as zf:
-                        for inv in ext_u_i:
-                            po_m = re.search(r"(\d{6})(?:\s+|-)?([A-Z]{2,})?", inv.name, re.IGNORECASE)
-                            if po_m:
-                                po = po_m.group(1)
-                                sku = po_m.group(2).upper() if po_m.group(2) else "" 
-                                wh = get_wh(inv)
-                                
-                                if not sku and wh:
-                                    matched_keys = [k for k in pkl_map.keys() if k[0] == po and k[2] == wh]
-                                    if matched_keys: sku = matched_keys[0][1]
-
-                                if sku and wh and (po, sku, wh) in pkl_map:
-                                    merger = PdfWriter()
-                                    inv.seek(0)
-                                    merger.append(inv)
-                                    
-                                    pkl_file = pkl_map[(po, sku, wh)]
-                                    pkl_file.seek(0)
-                                    merger.append(pkl_file) 
-                                    
-                                    for ex in ex_map.get(po, []): 
-                                        ex.seek(0)
-                                        merger.append(ex)
-                                    
-                                    if sku and drive_service:
-                                        target_folders = set()
-                                        if sku in ["GB", "OG", "ID", "ME", "OD", "IX", "PA"] or (sku == "OL" and wh == "IDW262"):
-                                            target_folders.add(SKU_FOLDERS["Cover Sheets"])
-                                        if sku in ["CN", "OB", "RU", "OR", "MX", "LD", "TW", "CO", "EC", "JP", "OJ"]:
-                                            target_folders.add(SKU_FOLDERS["Carelabels"])
-                                        if sku in ["CN", "OB"]:
-                                            target_folders.add(SKU_FOLDERS["Declaration of NWPM (CN)"])
-                                        if sku in ["JP", "OJ"]:
-                                            target_folders.add(SKU_FOLDERS["DMAM (JP)"])
-                                        if sku in ["IN", "OI"]:
-                                            target_folders.add(SKU_FOLDERS["Org Criterion (IN)"])
-                                        if sku in ["CA", "DR"]:
-                                            target_folders.add(SKU_FOLDERS["Statement of Origin (CA)"])
-                                        if sku == "CL":
-                                            target_folders.add(SKU_FOLDERS["CERTIFICADO DE ORIGEN (CL)"])
-                                            
-                                        for folder_id in target_folders:
-                                            sku_query = f"name contains '{po}' and '{folder_id}' in parents and trashed=false"
-                                            try:
-                                                sku_res = drive_service.files().list(q=sku_query, fields="files(id, name)", supportsAllDrives=True, includeItemsFromAllDrives=True).execute()
-                                                sku_items = sku_res.get('files', [])
-                                                
-                                                if sku_items:
-                                                    sku_request = drive_service.files().get_media(fileId=sku_items[0]['id'])
-                                                    sku_fh = io.BytesIO()
-                                                    sku_downloader = MediaIoBaseDownload(sku_fh, sku_request)
-                                                    sku_done = False
-                                                    while sku_done is False: _, sku_done = sku_downloader.next_chunk()
-                                                    sku_fh.seek(0)
-                                                    
-                                                    if folder_id == SKU_FOLDERS["Cover Sheets"]:
-                                                        merger.merge(0, sku_fh)
-                                                    else:
-                                                        merger.append(sku_fh)
-                                            except: pass
-
-                                    out = io.BytesIO(); merger.write(out); doc_bytes = out.getvalue()
-                                    final_filename = f"{po} {sku}-{wh}.pdf" if sku else f"{po}-{wh}.pdf"
-                                    zf.writestr(final_filename, doc_bytes)
-                                    count += 1; used_pkls.add((po, sku, wh)) 
-                                    
-                                    if po not in skc_pos:
-                                        error_logs.append({"Type": "Sketch", "File Name": f"PO: {po}", "Status": "Warning", "Reason": "Missing Sketch file in Drive"})
-                                else:
-                                    reason = "Matching PKL not found" if wh else "Warehouse ID not found in Invoice"
-                                    error_logs.append({"File Name": inv.name, "Status": "Failed", "Reason": reason, "Type": "Invoice"})
-                            else:
-                                error_logs.append({"File Name": inv.name, "Status": "Skipped", "Reason": "PO Number missing in name", "Type": "Invoice"})
+                with zipfile.ZipFile(zip_b, "w", zipfile.ZIP_DEFLATED) as zf:
+                    for inv, po, wh, file_bytes in inv_infos:
+                        sku = ""
+                        # 'Temp_' ဖြင့်မစပါက SKU ကို ဖိုင်နာမည်မှ အရင်ယူရန်ကြိုးစားမည်
+                        if not inv.name.startswith("Temp_"):
+                            sku_m = re.search(r"(\d{6})(?:\s+|-)?([A-Z]{2,})?", inv.name, re.IGNORECASE)
+                            if sku_m and sku_m.group(2):
+                                sku = sku_m.group(2).upper()
                         
-                        for (p_po, p_sku, p_wh), p_file in pkl_map.items(): 
-                            if (p_po, p_sku, p_wh) not in used_pkls:
-                                error_logs.append({"File Name": p_file.name, "Status": "Failed", "Reason": "Matching Invoice not found", "Type": "Packing List"})
-                                    
-                    if count > 0:
-                        add_log(st.session_state.current_user, f"Merged {count} docs")
-                    st.session_state.combiner_res = {"count": count, "zip_data": zip_b.getvalue() if count > 0 else None, "error_logs": error_logs}
-                    st.rerun()
+                        if po and wh:
+                            if not sku:
+                                # SKU မရှိပါက PKL Map ထဲမှ PO နှင့် WH တူညီသော SKU ကို လှမ်းယူမည်
+                                matched_keys = [k for k in pkl_map.keys() if k[0] == po and k[2] == wh]
+                                if matched_keys: sku = matched_keys[0][1]
 
-    if cb_col2.button("🗑️ Clear Files", key="clr_merge_all", use_container_width=True): 
+                            if sku and (po, sku, wh) in pkl_map:
+                                merger = PdfWriter()
+                                inv_pdf = io.BytesIO(file_bytes)
+                                merger.append(inv_pdf)
+                                
+                                pkl_file = pkl_map[(po, sku, wh)]
+                                pkl_file.seek(0)
+                                merger.append(pkl_file) 
+                                
+                                for ex in ex_map.get(po, []): 
+                                    ex.seek(0)
+                                    merger.append(ex)
+                                
+                                if sku and drive_service:
+                                    target_folders = set()
+                                    if sku in ["GB", "OG", "ID", "ME", "OD", "IX", "PA"] or (sku == "OL" and wh == "IDW262"):
+                                        target_folders.add(SKU_FOLDERS["Cover Sheets"])
+                                    if sku in ["CN", "OB", "RU", "OR", "MX", "LD", "TW", "CO", "EC", "JP", "OJ"]:
+                                        target_folders.add(SKU_FOLDERS["Carelabels"])
+                                    if sku in ["CN", "OB"]:
+                                        target_folders.add(SKU_FOLDERS["Declaration of NWPM (CN)"])
+                                    if sku in ["JP", "OJ"]:
+                                        target_folders.add(SKU_FOLDERS["DMAM (JP)"])
+                                    if sku in ["IN", "OI"]:
+                                        target_folders.add(SKU_FOLDERS["Org Criterion (IN)"])
+                                    if sku in ["CA", "DR"]:
+                                        target_folders.add(SKU_FOLDERS["Statement of Origin (CA)"])
+                                    if sku == "CL":
+                                        target_folders.add(SKU_FOLDERS["CERTIFICADO DE ORIGEN (CL)"])
+                                        
+                                    for folder_id in target_folders:
+                                        sku_query = f"name contains '{po}' and '{folder_id}' in parents and trashed=false"
+                                        try:
+                                            sku_res = drive_service.files().list(q=sku_query, fields="files(id, name)", supportsAllDrives=True, includeItemsFromAllDrives=True).execute()
+                                            sku_items = sku_res.get('files', [])
+                                            
+                                            if sku_items:
+                                                sku_request = drive_service.files().get_media(fileId=sku_items[0]['id'])
+                                                sku_fh = io.BytesIO()
+                                                sku_downloader = MediaIoBaseDownload(sku_fh, sku_request)
+                                                sku_done = False
+                                                while sku_done is False: _, sku_done = sku_downloader.next_chunk()
+                                                sku_fh.seek(0)
+                                                
+                                                if folder_id == SKU_FOLDERS["Cover Sheets"]:
+                                                    merger.merge(0, sku_fh)
+                                                else:
+                                                    merger.append(sku_fh)
+                                        except: pass
+
+                                out = io.BytesIO(); merger.write(out); doc_bytes = out.getvalue()
+                                final_filename = f"{po} {sku}-{wh}.pdf" if sku else f"{po}-{wh}.pdf"
+                                zf.writestr(final_filename, doc_bytes)
+                                count += 1; used_pkls.add((po, sku, wh)) 
+                                
+                                if po not in skc_pos:
+                                    error_logs.append({"Type": "Sketch", "File Name": f"PO: {po}", "Status": "Warning", "Reason": "Missing Sketch file in Drive"})
+                            else:
+                                error_logs.append({"File Name": inv.name, "Status": "Failed", "Reason": f"Matching PKL not found for PO:{po}, WH:{wh}", "Type": "Invoice"})
+                        else:
+                            if not po:
+                                reason = "PO Number missing in both name and content"
+                            else:
+                                reason = "Warehouse ID not found in Invoice content"
+                            error_logs.append({"File Name": inv.name, "Status": "Skipped", "Reason": reason, "Type": "Invoice"})
+                    
+                    for (p_po, p_sku, p_wh), p_file in pkl_map.items(): 
+                        if (p_po, p_sku, p_wh) not in used_pkls:
+                            error_logs.append({"File Name": p_file.name, "Status": "Failed", "Reason": f"Matching Invoice not found for PO:{p_po}, WH:{p_wh}", "Type": "Packing List"})
+                                
+                if count > 0:
+                    add_log(st.session_state.current_user, f"Merged {count} docs")
+                st.session_state.combiner_res = {"count": count, "zip_data": zip_b.getvalue() if count > 0 else None, "error_logs": error_logs}
+                st.rerun()
+
+    if cb_col2.button("🗑️ Clear Files", key="clr_merge_all", width="stretch"): 
         clear_files()
 
-    # ਰလဒ်များအား ခလုတ်အပြင်ဘက်တွင် သန့်ရှင်းစွာ ပြသခြင်း
+    # ရလဒ်များအား ခလုတ်အပြင်ဘက်တွင် သန့်ရှင်းစွာ ပြသခြင်း
     if st.session_state.get('combiner_res'):
         res = st.session_state.combiner_res
         if res["count"] > 0:
             st.success(f"🎉 Merged {res['count']} files successfully!")
-            st.download_button("📥 Download Merged ZIP", res["zip_data"], "merged_documents.zip", use_container_width=True)
+            st.download_button("📥 Download Merged ZIP", res["zip_data"], "merged_documents.zip", width="stretch")
         else: 
             st.warning("⚠️ No matching INV and PKL found to merge.")
             
@@ -393,7 +438,7 @@ def render_document_combiner_ui():
             df_errors = df_errors[["Sr No", "Type", "File Name", "Status", "Reason"]]
             
             def highlight_alt_rows(x): return ['background-color: rgba(59, 130, 246, 0.05)' if i % 2 == 0 else '' for i in range(len(x))]
-            st.dataframe(df_errors.style.apply(highlight_alt_rows, axis=0), use_container_width=True, hide_index=True)
+            st.dataframe(df_errors.style.apply(highlight_alt_rows, axis=0), width="stretch", hide_index=True)
             
             csv_data = df_errors.to_csv(index=False).encode('utf-8')
-            st.download_button(label="📥 Download Error Report (CSV)", data=csv_data, file_name=f"Missing_Docs_Report.csv", mime="text/csv", use_container_width=True)
+            st.download_button(label="📥 Download Error Report (CSV)", data=csv_data, file_name=f"Missing_Docs_Report.csv", mime="text/csv", width="stretch")

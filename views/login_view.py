@@ -67,7 +67,7 @@ def login_screen():
             u_pass = st.text_input("Password", type="password")
             
             # 💡 အရောင်ကို CSS မှ ထိန်းချုပ်မည်ဖြစ်၍ type="primary" ကို ဖြုတ်လိုက်ပါသည်
-            submit_button = st.form_submit_button("Sign In", use_container_width=True)
+            submit_button = st.form_submit_button("Sign In", width="stretch")
 
             if submit_button:
                 # core/auth.py မှ Function ကို လှမ်းခေါ်စစ်ဆေးခြင်း

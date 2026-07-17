@@ -380,7 +380,7 @@ def render_history_ui():
             ro_files = st.file_uploader("Upload RO PDFs or ZIP", type=["pdf", "zip"], accept_multiple_files=True, key=f"ro_{st.session_state.up_key}")
             
             c_ro1, c_ro2 = st.columns(2)
-            if c_ro1.button("⚡ Extract & Rename", use_container_width=True, key="btn_ro_extract"):
+            if c_ro1.button("⚡ Extract & Rename", width="stretch", key="btn_ro_extract"):
                 if not ro_files: 
                     st.error("Please upload files.")
                 else:
@@ -505,9 +505,9 @@ def render_history_ui():
 
             if st.session_state.ro_data_res:
                 st.success("✅ RO Data Excel & Renamed PDFs successfully generated!")
-                st.download_button("📥 Download Excel & Renamed PDFs (ZIP)", st.session_state.ro_data_res, "Renamed_PDFs_and_RO_Data.zip", mime="application/zip", use_container_width=True)
+                st.download_button("📥 Download Excel & Renamed PDFs (ZIP)", st.session_state.ro_data_res, "Renamed_PDFs_and_RO_Data.zip", mime="application/zip", width="stretch")
                 
-            if c_ro2.button("🗑️ Clear Files", key="c_ro_btn", use_container_width=True): clear_files(); st.rerun()
+            if c_ro2.button("🗑️ Clear Files", key="c_ro_btn", width="stretch"): clear_files(); st.rerun()
 
         elif import_tool == "License Balance":
             st.info("Upload **License PDF(s) or ZIP** to auto-extract data and generate calculated **Balance Sheet Excel**.")
@@ -515,7 +515,7 @@ def render_history_ui():
             lic_files = st.file_uploader("Upload License PDFs or ZIP", type=["pdf", "zip"], accept_multiple_files=True, key=f"lic_{st.session_state.up_key}")
             
             c_lic1, c_lic2 = st.columns(2)
-            if c_lic1.button("⚡ Generate Excel", use_container_width=True, key="btn_lic_generate"):
+            if c_lic1.button("⚡ Generate Excel", width="stretch", key="btn_lic_generate"):
                 if not lic_files:
                     st.error("❌ ကျေးဇူးပြု၍ License PDF ဖိုင်များကို Upload တင်ပေးပါ။")
                 else:
@@ -745,10 +745,10 @@ def render_history_ui():
                     file_name=res["name"],
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" if res["type"] == "single" else "application/zip",
                     key="btn_lic_download",
-                    use_container_width=True
+                    width="stretch"
                 )
                 
-            if c_lic2.button("🗑️ Clear Files", key="c_lic_clear", use_container_width=True): clear_files(); st.rerun()
+            if c_lic2.button("🗑️ Clear Files", key="c_lic_clear", width="stretch"): clear_files(); st.rerun()
 
         elif import_tool == "Extract Import Lists":
             import zipfile # ZIP ဖိုင်ပြုလုပ်ရန်
@@ -760,7 +760,7 @@ def render_history_ui():
             import_files = st.file_uploader("Upload Packing Lists (Excel)", type=["xlsx"], accept_multiple_files=True, key=f"import_lists_{st.session_state.up_key}")
             
             c_imp1, c_imp2 = st.columns(2)
-            if c_imp1.button("⚡ Extract & Group", use_container_width=True, key="btn_imp_extract"):
+            if c_imp1.button("⚡ Extract & Group", width="stretch", key="btn_imp_extract"):
                 if not import_files: 
                     st.error("❌ ကျေးဇူးပြု၍ Packing List Excel ဖိုင်(များ)ကို Upload တင်ပေးပါ။")
                 else:
@@ -959,14 +959,14 @@ def render_history_ui():
                 # ပေါင်းထားလျှင် (Excel တစ်စောင်တည်း)
                 if res["mode"] == "combine":
                     st.success(f"✅ Successfully consolidated {res['count']} Excel files into one summary!")
-                    st.download_button("📥 Download Consolidated Summary Excel", res["data"], res["name"], mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="btn_imp_download_combine_final", use_container_width=True)
+                    st.download_button("📥 Download Consolidated Summary Excel", res["data"], res["name"], mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="btn_imp_download_combine_final", width="stretch")
                 
                 # ခွဲထုတ်ထားလျှင် (ZIP ဖိုင် တစ်ခုတည်း)
                 elif res["mode"] == "separate":
                     st.success(f"✅ Successfully processed {res['count']} Excel files separately into a ZIP file!")
-                    st.download_button("📥 Download All Files (ZIP)", res["data"], res["name"], mime="application/zip", key="btn_imp_download_zip_final", use_container_width=True)
+                    st.download_button("📥 Download All Files (ZIP)", res["data"], res["name"], mime="application/zip", key="btn_imp_download_zip_final", width="stretch")
                 
-            if c_imp2.button("🗑️ Clear Files", key="c_imp_clear_final", use_container_width=True): 
+            if c_imp2.button("🗑️ Clear Files", key="c_imp_clear_final", width="stretch"): 
                 clear_files()
                 st.session_state.pop("import_lists_res", None)
                 st.rerun()
@@ -998,13 +998,13 @@ def render_history_ui():
             with btn_col1:
                 if st.session_state.get('air_merge_res') and st.session_state.air_merge_res.get("cnt", 0) > 0:
                     res = st.session_state.air_merge_res
-                    st.download_button("📥 Download Result ZIP", data=res["data"], file_name="Air_Merge_Doc.zip", mime="application/zip", use_container_width=True, key="download_air_merge_success")
+                    st.download_button("📥 Download Result ZIP", data=res["data"], file_name="Air_Merge_Doc.zip", mime="application/zip", width="stretch", key="download_air_merge_success")
                     process_clicked = False 
                 else:
-                    process_clicked = st.button("🔗 Process Air Docs Merge", use_container_width=True, key="process_air_docs_btn")
+                    process_clicked = st.button("🔗 Process Air Docs Merge", width="stretch", key="process_air_docs_btn")
 
             with btn_col2:
-                if st.button("🗑️ Clear Files", key="clear_air_merge_final", use_container_width=True):
+                if st.button("🗑️ Clear Files", key="clear_air_merge_final", width="stretch"):
                     st.session_state.air_merge_res = None
                     clear_files(); st.rerun()
             
@@ -1034,7 +1034,7 @@ def render_history_ui():
             arc_files = st.file_uploader("Upload PDFs or ZIP", type=["pdf", "zip"], accept_multiple_files=True, key=f"arc_{st.session_state.up_key}")
             
             c_arc1, c_arc2 = st.columns(2)
-            if c_arc1.button("⚡ Process & Combine", use_container_width=True, key="btn_arc_process"):
+            if c_arc1.button("⚡ Process & Combine", width="stretch", key="btn_arc_process"):
                 if not arc_files: st.error("Please upload PDF or ZIP files.")
                 else:
                     with st.spinner("Processing documents..."):
@@ -1159,15 +1159,15 @@ def render_history_ui():
             if st.session_state.arc_res:
                 res = st.session_state.arc_res
                 st.success(f"✅ Successfully combined {res['count']} files!")
-                st.download_button("📥 Download Combined PDFs (ZIP)", res["zip_data"], "ASMs_Combined_Sea.zip", use_container_width=True)
-            if c_arc2.button("🗑️ Clear Files", key="c_arc_btn", use_container_width=True): clear_files(); st.rerun()
+                st.download_button("📥 Download Combined PDFs (ZIP)", res["zip_data"], "ASMs_Combined_Sea.zip", width="stretch")
+            if c_arc2.button("🗑️ Clear Files", key="c_arc_btn", width="stretch"): clear_files(); st.rerun()
 
         elif export_tool == "Export Data":
             st.info("Upload multiple **PDFs** or **ZIP files** to extract Export Data into Excel.")
             exp_files = st.file_uploader("Upload Export PDFs or ZIP", type=["pdf", "zip"], accept_multiple_files=True, key=f"exp_{st.session_state.up_key}")
             
             c_pdf1, c_pdf2 = st.columns(2)
-            if c_pdf1.button("⚡ Extract & Rename", use_container_width=True, key="btn_pdf_extract"):
+            if c_pdf1.button("⚡ Extract & Rename", width="stretch", key="btn_pdf_extract"):
                 if not exp_files: 
                     st.error("Please upload files.")
                 else:
@@ -1305,19 +1305,19 @@ def render_history_ui():
                         data=pdf_data, 
                         file_name="Export_Data_and_Renamed_PDFs.zip", 
                         mime="application/zip", 
-                        use_container_width=True
+                        width="stretch"
                     )
                 else:
                     st.error("⚠️ System Warning: Data format is incorrect.")
 
-            if c_pdf2.button("🗑️ Clear Files", key="c_pdf_btn", use_container_width=True): clear_files(); st.rerun()
+            if c_pdf2.button("🗑️ Clear Files", key="c_pdf_btn", width="stretch"): clear_files(); st.rerun()
 
         elif export_tool == "Rex Data":
             st.info("Upload multiple **PDFs** or **ZIP files** to extract REX Data into Excel.")
             rex_files = st.file_uploader("Upload REX PDFs or ZIP", type=["pdf", "zip"], accept_multiple_files=True, key=f"rex_{st.session_state.up_key}")
             
             c_rex1, c_rex2 = st.columns(2)
-            if c_rex1.button("⚡ Extract Data", use_container_width=True, key="btn_rex_extract"):
+            if c_rex1.button("⚡ Extract Data", width="stretch", key="btn_rex_extract"):
                 if not rex_files: st.error("Please upload files.")
                 else:
                     with st.spinner("Extracting REX Data..."):
@@ -1415,8 +1415,8 @@ def render_history_ui():
 
             if st.session_state.rex_data_res:
                 st.success("✅ REX Data Excel successfully generated!")
-                st.download_button("📥 Download REX Data (Excel)", st.session_state.rex_data_res, "Teng Hui_Rex_Data.xlsx", use_container_width=True)
-            if c_rex2.button("🗑️ Clear Files", key="c_rex_btn", use_container_width=True): clear_files(); st.rerun()
+                st.download_button("📥 Download REX Data (Excel)", st.session_state.rex_data_res, "Teng Hui_Rex_Data.xlsx", width="stretch")
+            if c_rex2.button("🗑️ Clear Files", key="c_rex_btn", width="stretch"): clear_files(); st.rerun()
 
         elif export_tool == "Extract Export Summary":
             st.info("Upload **Booking List (Excel)** to extract standard summary data. Items are grouped, PO Numbers are cleanly merged with commas, and errors are fixed.")
@@ -1427,7 +1427,7 @@ def render_history_ui():
             export_summary_file = st.file_uploader("Upload Booking List (Excel)", type=["xlsx"], key=f"export_summary_{st.session_state.up_key}")
             
             c_exp_sum1, c_exp_sum2 = st.columns(2)
-            if c_exp_sum1.button("⚡ Extract Standard Summary", use_container_width=True, key="btn_exp_sum_extract"):
+            if c_exp_sum1.button("⚡ Extract Standard Summary", width="stretch", key="btn_exp_sum_extract"):
                 if not export_summary_file: 
                     st.error("❌ ကျေးဇူးပြု၍ Booking List Excel ဖိုင်ကို Upload တင်ပေးပါ။")
                 else:
@@ -1666,9 +1666,9 @@ def render_history_ui():
             if st.session_state.export_summary_res:
                 res = st.session_state.export_summary_res
                 st.success(f"✅ Successfully extracted Export Summary!")
-                st.download_button("📥 Download Export Summary Excel", res["data"], res["name"], mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="btn_exp_sum_download", use_container_width=True)
+                st.download_button("📥 Download Export Summary Excel", res["data"], res["name"], mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="btn_exp_sum_download", width="stretch")
                 
-            if c_exp_sum2.button("🗑️ Clear Files", key="c_exp_sum_clear", use_container_width=True):
+            if c_exp_sum2.button("🗑️ Clear Files", key="c_exp_sum_clear", width="stretch"):
                 st.session_state.export_summary_res = None
                 clear_files(); st.rerun()
 
@@ -1685,7 +1685,7 @@ def render_history_ui():
             
             c_hm1, c_hm2 = st.columns(2)
             
-            if c_hm1.button("⚡ Extract Data", key="btn_hm_extract", use_container_width=True):
+            if c_hm1.button("⚡ Extract Data", key="btn_hm_extract", width="stretch"):
                 if not uploaded_hm_files: 
                     st.error("Please upload PDF or ZIP files.")
                 else:
@@ -1695,6 +1695,16 @@ def render_history_ui():
                         
                         if records:
                             df = pd.DataFrame(records)
+                            
+                            # 💡 Column နာမည်များကို လိုချင်သည့်အတိုင်း ပြောင်းလဲခြင်း (Rename Columns)
+                            df = df.rename(columns={
+                                "Final Destination Name": "Country",
+                                "Final Destination Code": "Code",
+                                "Warehouse ID": "WID",
+                                "Net Weight (KG)": "N.W (KG)",
+                                "Gross Weight (KG)": "G.W (KG)"
+                            })
+                            
                             output = io.BytesIO()
                             
                             with pd.ExcelWriter(output, engine='openpyxl') as writer:
@@ -1715,18 +1725,18 @@ def render_history_ui():
             if st.session_state.hm_ext_res:
                 res = st.session_state.hm_ext_res
                 st.success(f"Successfully extracted {res['count']} records!")
-                st.dataframe(res["df"], use_container_width=True)
+                st.dataframe(res["df"], width="stretch")
                 
                 st.download_button(
                     label="📥 Download Excel File",
                     data=res["data"],
-                    file_name="HM_Invoice_Data.xlsx", 
+                    file_name="HM_Invoice & Date.xlsx", 
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     key="hm_download_btn",
-                    use_container_width=True
+                    width="stretch"
                 )
                 
-            if c_hm2.button("🗑️ Clear Files", key="c_hm_clear", use_container_width=True):
+            if c_hm2.button("🗑️ Clear Files", key="c_hm_clear", width="stretch"):
                 st.session_state.hm_ext_res = None
                 try:
                     clear_files()
@@ -1755,13 +1765,13 @@ def render_history_ui():
                     selected_user = st.selectbox("👤 Filter by User", ["All Users"] + users_list)
                 with c_log3:
                     st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
-                    if st.button("🔄 Refresh", use_container_width=True):
+                    if st.button("🔄 Refresh", width="stretch"):
                         st.rerun()
                 
                 if selected_user != "All Users":
                     df = df[df['User'] == selected_user]
 
-                st.dataframe(df, use_container_width=True, hide_index=True)
+                st.dataframe(df, width="stretch", hide_index=True)
                 
                 st.download_button(
                     label="📥 Download Logs (CSV)",
