@@ -9,6 +9,7 @@ from views.extract_forms_view import render_extract_forms_ui
 from views.history_view import render_history_ui  
 from core.utils import add_log
 from views.booking_forms_view import render_booking_forms_ui
+from views.document_checker_view import render_document_checker_ui
 
 # ၁။ Page Config
 # 💡 ဤနေရာတွင် ဖိုင်နာမည်ကို "TH Logo.png" ဟု အတိအကျ ပြင်ဆင်ထားပါသည်
@@ -185,7 +186,7 @@ with top_col2:
 st.markdown("---")
 
 # ၆။ 🛡️ Menu Bar စနစ်
-available_tools = ["PDF Stamper", "PDF Compressor", "Extract Forms", "Document Combiner","Booking Forms"]
+available_tools = ["PDF Stamper", "PDF Compressor", "Extract Forms", "Document Combiner", "Document Checker", "Booking Forms"]
 
 if st.session_state.current_user == "admin":
     available_tools.append("Admin Tools") 
@@ -204,6 +205,8 @@ elif tool == "Extract Forms":
     render_extract_forms_ui()
 elif tool == "Document Combiner":
     render_document_combiner_ui()
+elif tool == "Document Checker":
+    render_document_checker_ui()    
 elif tool == "Booking Forms":
     render_booking_forms_ui()    
 elif tool == "Admin Tools":
