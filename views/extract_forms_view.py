@@ -52,6 +52,182 @@ def compress_pdf_bytes(pdf_bytes, gs_setting="/ebook"):
             
     return pdf_bytes
 
+import pandas as pd
+import io
+import openpyxl
+from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+
+# =========================================================
+# HELPER: H&M BOOKING CONVERTER (COMBINED INTO 1 SHEET)
+# =========================================================
+def convert_hm_booking(uploaded_file):
+    output = io.BytesIO()
+    
+    # 1. ဖွက်ထားသော (Hidden) Sheet များကို မဖတ်ဘဲ မြင်ရသော Sheet ကိုသာ ရွေးချယ်ခြင်း
+    wb = openpyxl.load_workbook(uploaded_file, read_only=True)
+    visible_sheets = [sheet.title for sheet in wb.worksheets if sheet.sheet_state == 'visible']
+    wb.close()
+    
+    xls = pd.ExcelFile(uploaded_file)
+    all_rows = []
+    
+    # 💡 2. မူရင်းဖိုင်၏ အပေါ်ဆုံး Header ခေါင်းစဉ်ကို ယူရန်
+    main_title = ""
+    if visible_sheets:
+        try:
+            df_title = pd.read_excel(uploaded_file, sheet_name=visible_sheets[0], header=None, nrows=1)
+            main_title = str(df_title.iloc[0, 0])
+            if main_title.lower() == 'nan': main_title = ""
+        except:
+            pass
+            
+    for sheet in visible_sheets:
+        if sheet in xls.sheet_names:
+            df = pd.read_excel(uploaded_file, sheet_name=sheet, header=1)
+            if 'PO NO' in df.columns:
+                all_rows.append(df)
+            
+    if not all_rows:
+        return output
+        
+    combined_df = pd.concat(all_rows, ignore_index=True)
+    
+    combined_df['Group'] = combined_df['PO NO'].notna().cumsum()
+    combined_df['PO NO'] = combined_df['PO NO'].ffill()
+    combined_df['Depts'] = combined_df['Depts'].ffill()
+    combined_df['SKU'] = combined_df['SKU'].ffill()
+    combined_df['WH CODE'] = combined_df['WH CODE'].ffill()
+    
+    records = []
+    no_counter = 1 
+    
+    for grp, grp_df in combined_df.groupby('Group'):
+        if grp_df.empty: continue
+        first_row = grp_df.iloc[0]
+        
+        def safe_str(val):
+            return str(val).strip() if pd.notna(val) and str(val).lower() != 'nan' else ""
+        def safe_int_str(val):
+            if pd.isna(val) or str(val).lower() == 'nan': return ""
+            try: return str(int(val))
+            except: return str(val).strip()
+        
+        po_no = safe_int_str(first_row['PO NO']).upper()
+        wh_code = safe_str(first_row['WH CODE']).upper()
+        ctns = first_row['CTNS'] if pd.notna(first_row['CTNS']) else 0
+        gw = first_row['G.W'] if pd.notna(first_row['G.W']) else 0.0
+        cbm = first_row['CBM'] if pd.notna(first_row['CBM']) else 0.0
+        
+        if not po_no or ctns == 0:
+            continue
+            
+        desc_parts = []
+        for _, row in grp_df.iterrows():
+            d = safe_str(row['DESCRIPTION']).upper()
+            if not d: continue
+            
+            c = safe_str(row['COMPOSITION']).upper()
+            po = safe_int_str(row['PO NO']).upper()
+            dept = safe_int_str(row['Depts']).upper()
+            sku = safe_str(row['SKU']).upper()
+            hs = safe_int_str(row['HS CODE']).upper()
+            pcs = safe_int_str(row['PCS']).upper()
+            
+            sub_desc = []
+            sub_desc.append(d)
+            if c: sub_desc.append(c)
+            sub_desc.append(f"PO NO: {po}-{dept}" if dept else f"PO NO: {po}")
+            if sku: sub_desc.append(f"SKU: {sku}")
+            if hs: sub_desc.append(f"HS CODE: {hs}")
+            if pcs: sub_desc.append(f"QTY(PCS): {pcs}")
+            desc_parts.append("\n".join(sub_desc))
+            
+        full_desc = "\n\n".join(desc_parts)
+        
+        records.append({
+            'NO.': no_counter,
+            'PO NO': po_no,
+            'DESCRIPTION': full_desc,
+            'WH CODE': wh_code,
+            'CTNS': int(ctns),
+            'G.W': gw,
+            'CBM': cbm
+        })
+        no_counter += 1
+        
+    res_df = pd.DataFrame(records)
+    
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        if not res_df.empty:
+            # 💡 3. အပေါ်ဆုံး Row ကို Header အတွက် ချန်ထားပေးရန် (startrow=1)
+            res_df.to_excel(writer, index=False, sheet_name='RESULT', startrow=1)
+            ws = writer.sheets['RESULT']
+            
+            ws.sheet_view.showGridLines = False
+            
+            # 💡 4. မူရင်း Title Header ကို အပေါ်ဆုံး၌ ရေးသားခြင်း
+            if main_title:
+                ws['A1'] = main_title
+            ws.merge_cells('A1:G1')
+            ws['A1'].font = Font(size=14, bold=True)
+            ws['A1'].alignment = Alignment(horizontal="left", vertical="center")
+            ws.row_dimensions[1].height = 30
+            
+            # Column Widths
+            col_widths = {'A': 6, 'B': 15, 'C': 65, 'D': 15, 'E': 12, 'F': 12, 'G': 12}
+            for col, width in col_widths.items():
+                ws.column_dimensions[col].width = width
+                
+            # Freeze Panes ကို Row 3 မှ စတင်ရန် ပြင်ဆင်ခြင်း
+            ws.freeze_panes = 'A3'
+            ws.auto_filter.ref = f"A2:G{ws.max_row}"
+            
+            # Formatting Objects
+            header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
+            header_font = Font(color="FFFFFF", bold=True)
+            zebra_fill_1 = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
+            zebra_fill_2 = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
+            
+            align_center = Alignment(horizontal="center", vertical="center", wrap_text=True)
+            align_left = Alignment(horizontal="left", vertical="center", wrap_text=True)
+            align_right = Alignment(horizontal="right", vertical="center", wrap_text=True)
+            
+            # Borders
+            thin_border = Border(
+                left=Side(style='thin', color='000000'),
+                right=Side(style='thin', color='000000'),
+                top=Side(style='thin', color='000000'),
+                bottom=Side(style='thin', color='000000')
+            )
+            
+            # (min_row=2 ဖြစ်သွားပါမည်)
+            for row_idx, row in enumerate(ws.iter_rows(min_row=2, max_col=7)):
+                if row_idx == 0:
+                    ws.row_dimensions[row[0].row].height = 25
+                    for cell in row:
+                        cell.fill = header_fill
+                        cell.font = header_font
+                        cell.alignment = align_center
+                        cell.border = thin_border
+                else:
+                    desc_text = str(row[2].value) if row[2].value else ""
+                    lines = desc_text.count('\n') + 1
+                    ws.row_dimensions[row[0].row].height = max(40, lines * 16)
+                    
+                    current_fill = zebra_fill_1 if row_idx % 2 != 0 else zebra_fill_2
+                    for col_idx, cell in enumerate(row):
+                        cell.fill = current_fill
+                        cell.border = thin_border
+                        if col_idx == 2:  # DESCRIPTION
+                            cell.alignment = align_left
+                        elif col_idx in [4, 5, 6]:  # CTNS, G.W, CBM
+                            cell.alignment = align_right
+                        else:
+                            cell.alignment = align_center
+                            
+    output.seek(0)
+    return output
+
 
 # =========================================================
 # EXTRACT FORMS LOGIC FUNCTIONS
@@ -353,21 +529,21 @@ def render_extract_forms_ui():
     if not os.path.exists(TEMPLATE_DIR): 
         os.makedirs(TEMPLATE_DIR)
 
-    # 🗂️ ဖောင်အမျိုးအစား ရွေးချယ်ခြင်း (Air Booking Excel ကို ထပ်မံထည့်သွင်းထားသည်)
+    # 🗂️ ဖောင်အမျိုးအစား ရွေးချယ်ခြင်း
     st.write("Please select the required Form Type:")
     selected_form = st.radio(
         "Select Form Type",
-        ["Declaration of NWPM (CN)", "Statement of Origin (CA,DR)", "DMAM (JP)", "Org Criterion (IN)", "Cover Sheet", "Certificate of Origin (CL)", "Air Booking (Excel)"],
+        ["Declaration of NWPM (CN)", "Statement of Origin (CA,DR)", "DMAM (JP)", "Org Criterion (IN)", "Cover Sheet", "Certificate of Origin (CL)", "Air Booking (Excel)", "H&M Converter"],
         horizontal=True, label_visibility="collapsed", key="form_selector"
     )
     
-    st.markdown("<br>", unsafe_allow_html=True) # ခပ်ပါးပါး ခြားရန်
+    st.markdown("<br>", unsafe_allow_html=True) 
     
     do_compress = st.toggle("🗜️ **Compress Output PDFs**", value=True)
     if do_compress and not shutil.which("gs"):
         st.warning("⚠️ သင့်စက်တွင် Ghostscript ကို Install မလုပ်ထားပါ။ Compression အလုပ်လုပ်မည် မဟုတ်ပါ။")
         
-    st.markdown("---") # အောက်ပိုင်းနှင့်ပိုင်းခြားရန် တစ်ကြောင်းသာ ထားမည်
+    st.markdown("---")
 
     # [1] Declaration of NWPM (CN)
     if selected_form == "Declaration of NWPM (CN)":
@@ -376,7 +552,7 @@ def render_extract_forms_ui():
         inv_files = st.file_uploader("Upload Invoice PDFs", type=["pdf", "zip"], accept_multiple_files=True, key=f"cn_{st.session_state.form_up_key}")
         
         c1, c2 = st.columns(2)
-        if c1.button("⚡ Generate Forms", use_container_width=True, type="primary", key="btn_ex_dec"):
+        if c1.button("⚡ Generate Forms", width="stretch", type="primary", key="btn_ex_dec"):
             if not inv_files: 
                 st.error("❌ Please upload Invoice PDF files first.")
             else:
@@ -406,9 +582,9 @@ def render_extract_forms_ui():
                         if success_count > 0:
                             st.success(f"✅ Successfully generated {success_count} Declaration Forms!")
                             add_log(st.session_state.current_user, f"Extract Forms: Generated {success_count} NWPM(CN)")
-                            st.download_button("📥 Download Generated Forms (ZIP)", zip_buffer.getvalue(), "Exporter_Declarations_NWPM(CN).zip", "application/zip", use_container_width=True)
+                            st.download_button("📥 Download Generated Forms (ZIP)", zip_buffer.getvalue(), "Exporter_Declarations_NWPM(CN).zip", "application/zip", width="stretch")
                             
-        if c2.button("🗑️ Clear Files", use_container_width=True, key="clr_ex_dec"): 
+        if c2.button("🗑️ Clear Files", width="stretch", key="clr_ex_dec"): 
             clear_files()
             st.rerun()
 
@@ -427,7 +603,7 @@ def render_extract_forms_ui():
             ca_inv_files = st.file_uploader("Upload Invoice PDFs", type=["pdf", "zip"], accept_multiple_files=True, key=f"ca_inv_{st.session_state.form_up_key}")
             
             c_ca1, c_ca2 = st.columns(2)
-            if c_ca1.button("⚡ Generate Forms", key="btn_gen_ca", use_container_width=True, type="primary"):
+            if c_ca1.button("⚡ Generate Forms", key="btn_gen_ca", width="stretch", type="primary"):
                 if not ca_inv_files: 
                     st.error("⚠️ ကျေးဇူးပြု၍ Invoice PDF ဖိုင်များကို အရင် Upload တင်ပေးပါ။")
                 else:
@@ -655,12 +831,12 @@ def render_extract_forms_ui():
                             if success_count > 0:
                                 st.success(f"✅ Successfully generated {success_count} CA Full Forms!")
                                 add_log(st.session_state.current_user, f"Extract Forms: Generated {success_count} x CA Forms")
-                                st.download_button("📥 Download CA Forms (ZIP)", zip_buffer.getvalue(), "CA_Forms.zip", "application/zip", use_container_width=True)
+                                st.download_button("📥 Download CA Forms (ZIP)", zip_buffer.getvalue(), "CA_Forms.zip", "application/zip", width="stretch")
                                 
                         except Exception as e: 
                             st.error(f"❌ Error: {e}")
                             
-            if c_ca2.button("🗑️ Clear Files", key="clr_ca_forms", use_container_width=True): 
+            if c_ca2.button("🗑️ Clear Files", key="clr_ca_forms", width="stretch"): 
                 clear_files()
                 st.rerun()
 
@@ -671,7 +847,7 @@ def render_extract_forms_ui():
         dmam_files = st.file_uploader("Upload Invoice PDFs", type=["pdf", "zip"], accept_multiple_files=True, key=f"jp_{st.session_state.form_up_key}")
         
         c1, c2 = st.columns(2)
-        if c1.button("⚡ Generate Forms", use_container_width=True, type="primary", key="btn_generate_dmam"):
+        if c1.button("⚡ Generate Forms", width="stretch", type="primary", key="btn_generate_dmam"):
             if not dmam_files: 
                 st.error("❌ Please upload Invoice PDF files first.")
             else:
@@ -704,12 +880,12 @@ def render_extract_forms_ui():
                             if success_count > 0:
                                 st.success(f"🎉 Successfully generated {success_count} Dec M&A Forms!")
                                 add_log(st.session_state.current_user, f"Extract Forms: Generated {success_count} x DMAM (JP) Forms")
-                                st.download_button("📥 Download DMAM Forms (ZIP)", zip_buffer.getvalue(), "DMAM(JP)_Forms.zip", "application/zip", use_container_width=True)
+                                st.download_button("📥 Download DMAM Forms (ZIP)", zip_buffer.getvalue(), "DMAM(JP)_Forms.zip", "application/zip", width="stretch")
                                 
                         except Exception as e: 
                             st.error(f"Error processing files: {e}")
                             
-        if c2.button("🗑️ Clear Files", use_container_width=True, key="clr_dmam_files"): 
+        if c2.button("🗑️ Clear Files", width="stretch", key="clr_dmam_files"): 
             clear_files()
             st.rerun()
 
@@ -720,9 +896,9 @@ def render_extract_forms_ui():
         oc_excel_file = st.file_uploader("Upload Excel or CSV File", type=["xlsx", "xls", "csv"], key=f"in_{st.session_state.form_up_key}")
         
         c1, c2 = st.columns(2)
-        generate_clicked = c1.button("⚡ Generate Forms", use_container_width=True, type="primary", key="btn_generate_oc")
+        generate_clicked = c1.button("⚡ Generate Forms", width="stretch", type="primary", key="btn_generate_oc")
         
-        if c2.button("🗑️ Clear Files", use_container_width=True, key="clr_oc_files"): 
+        if c2.button("🗑️ Clear Files", width="stretch", key="clr_oc_files"): 
             clear_files()
             st.rerun()
 
@@ -770,7 +946,7 @@ def render_extract_forms_ui():
                             if success_count > 0:
                                 st.success(f"🎉 Successfully generated {success_count} Org Criterion Forms!")
                                 add_log(st.session_state.current_user, f"Extract Forms: Generated {success_count} x Org Criterion Forms")
-                                st.download_button("📥 Download Org Criterion Forms (ZIP)", zip_buffer.getvalue(), "Org_Criterion_Forms(IN).zip", "application/zip", use_container_width=True)
+                                st.download_button("📥 Download Org Criterion Forms (ZIP)", zip_buffer.getvalue(), "Org_Criterion_Forms(IN).zip", "application/zip", width="stretch")
                                 
                         except Exception as e: 
                             st.error(f"Error processing files: {e}")
@@ -782,9 +958,9 @@ def render_extract_forms_ui():
         uploaded_excel = st.file_uploader("Upload Excel List", type=["xlsx", "xls", "csv"], key=f"cover_{st.session_state.form_up_key}")
         
         c1, c2 = st.columns(2)
-        generate_clicked = c1.button("⚡ Generate Cover Sheet", use_container_width=True, type="primary", key="btn_gen_cover")
+        generate_clicked = c1.button("⚡ Generate Cover Sheet", width="stretch", type="primary", key="btn_gen_cover")
         
-        if c2.button("🗑️ Clear Files", use_container_width=True, key="clear_cover_sheet"): 
+        if c2.button("🗑️ Clear Files", width="stretch", key="clear_cover_sheet"): 
             clear_files()
             st.rerun()
 
@@ -801,7 +977,7 @@ def render_extract_forms_ui():
                         if zip_file_buffer and total_count > 0:
                             st.success(f"✅ {total_count} Cover Sheets generated successfully!")
                             add_log(st.session_state.current_user, f"Extract Forms: Generated {total_count} x Cover Sheets")
-                            st.download_button("📥 Download All Cover Sheets (ZIP)", zip_file_buffer, "Generated_Cover_Sheets.zip", "application/zip", use_container_width=True)
+                            st.download_button("📥 Download All Cover Sheets (ZIP)", zip_file_buffer, "Generated_Cover_Sheets.zip", "application/zip", width="stretch")
 
     # [6] Certificate of Origin (CL)
     elif selected_form == "Certificate of Origin (CL)":
@@ -810,7 +986,7 @@ def render_extract_forms_ui():
         cl_files = st.file_uploader("Upload Invoice PDFs", type=["pdf", "zip"], accept_multiple_files=True, key=f"cl_{st.session_state.form_up_key}")
         
         c1, c2 = st.columns(2)
-        if c1.button("⚡ Generate Forms", use_container_width=True, type="primary", key="btn_generate_cl"):
+        if c1.button("⚡ Generate Forms", width="stretch", type="primary", key="btn_generate_cl"):
             if not cl_files: 
                 st.error("❌ Please upload Invoice PDF files first.")
             else:
@@ -840,23 +1016,23 @@ def render_extract_forms_ui():
                             if success_count > 0:
                                 st.success(f"🎉 Successfully generated {success_count} Certificate of Origin (CL) Forms!")
                                 add_log(st.session_state.current_user, f"Extract Forms: Generated {success_count} x Certificado De Origen (CL)")
-                                st.download_button("📥 Download Generated CL Forms (ZIP)", zip_buffer.getvalue(), "Certificate_of_Origin_CL_Forms.zip", "application/zip", use_container_width=True)
+                                st.download_button("📥 Download Generated CL Forms (ZIP)", zip_buffer.getvalue(), "Certificate_of_Origin_CL_Forms.zip", "application/zip", width="stretch")
                                 
                         except Exception as e: 
                             st.error(f"Error processing files: {e}")
                             
-        if c2.button("🗑️ Clear Files", use_container_width=True, key="clr_cl_files"): 
+        if c2.button("🗑️ Clear Files", width="stretch", key="clr_cl_files"): 
             clear_files()
             st.rerun()
 
-    # 🛩️ [7] Air Booking (Excel) အသစ်ထည့်သွင်းခြင်း
+    # 🛩️ [7] Air Booking (Excel)
     elif selected_form == "Air Booking (Excel)":
         st.markdown("#### ✈️ Air Booking Automation")
         st.info("Upload **H&M Air BKG Lists.xlsx** to generate automated Air Booking Excel forms.")
         bkg_file = st.file_uploader("Upload H&M Air BKG Lists (Excel)", type=["xlsx"], key=f"air_bkg_{st.session_state.form_up_key}")
         
         c_air1, c_air2 = st.columns(2)
-        if c_air1.button("⚡ Generate Forms", use_container_width=True, type="primary", key="btn_air_gen"):
+        if c_air1.button("⚡ Generate Forms", width="stretch", type="primary", key="btn_air_gen"):
             if not bkg_file: 
                 st.error("❌ ကျေးဇူးပြု၍ BKG List ဖိုင်ကို Upload တင်ပေးပါ။")
             else:
@@ -964,8 +1140,42 @@ def render_extract_forms_ui():
         if st.session_state.air_bkg_res:
             res = st.session_state.air_bkg_res
             st.success(f"✅ Generated {res['count']} Excel files successfully!")
-            st.download_button("📥 Download Generated Excel Files (ZIP)", res["zip_data"], "Air_Booking_Forms.zip", use_container_width=True)
+            st.download_button("📥 Download Generated Excel Files (ZIP)", res["zip_data"], "Air_Booking_Forms.zip", width="stretch")
             
-        if c_air2.button("🗑️ Clear Files", key="c_air", use_container_width=True): 
+        if c_air2.button("🗑️ Clear Files", key="c_air", width="stretch"): 
+            clear_files()
+            st.rerun()
+
+    # 📝 [8] H&M Converter အသစ်ထည့်သွင်းခြင်း
+    elif selected_form == "H&M Converter":
+        st.markdown("#### 📝 H&M Booking List Converter")
+        st.info("H&M SEA BOOKING LIST ဖိုင်ကို အောက်တွင် တင်ပေးပါ။")
+
+        uploaded_hm_file = st.file_uploader("Upload Excel File", type=["xlsx"], key=f"hm_converter_{st.session_state.form_up_key}")
+
+        c_hm1, c_hm2 = st.columns(2)
+        
+        if c_hm1.button("⚡ Convert File", key="btn_convert_hm", width="stretch", type="primary"):
+            if not uploaded_hm_file:
+                st.error("❌ ကျေးဇူးပြု၍ H&M Booking List ဖိုင်ကို အရင် Upload တင်ပေးပါ။")
+            else:
+                with st.spinner("Converting Data..."):
+                    try:
+                        converted_file = convert_hm_booking(uploaded_hm_file)
+                        st.success("✅ အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ!")
+                        add_log(st.session_state.current_user, "Extract Forms: Converted H&M Booking List")
+                        
+                        st.download_button(
+                            label="⬇️ Download Converted Result",
+                            data=converted_file,
+                            file_name=f"Converted_{uploaded_hm_file.name}",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            key="btn_download_hm",
+                            width="stretch"
+                        )
+                    except Exception as e:
+                        st.error(f"ဖိုင်ပြောင်းလဲရာတွင် အမှားအယွင်းဖြစ်ပေါ်နေပါသည်: {e}")
+                        
+        if c_hm2.button("🗑️ Clear Files", key="clr_hm_converter", width="stretch"):
             clear_files()
             st.rerun()
