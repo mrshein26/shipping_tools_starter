@@ -47,7 +47,7 @@ def extract_pos_from_uploads(u_e, target_skus):
     return req_pos, excel_care_label_pos
 
 def extract_azo_targets(u_e):
-    """Excel မှ SKU 'IN' သို့မဟုတ် 'OI' ပါသော PO များကိုသာ AZO စစ်ဆေးရန် ဆွဲထုတ်သည်"""
+    """Excel မှ SKU 'IN', 'OI', 'TR', 'OT' ပါသော PO များကိုသာ AZO စစ်ဆေးရန် ဆွဲထုတ်သည်"""
     azo_targets = []
     global_tod = "Unknown_TOD"
     
@@ -87,7 +87,8 @@ def extract_azo_targets(u_e):
                         
                     sku = str(row['SKU']).strip().upper()
                     
-                    if sku in ['IN', 'OI']:
+                    # 💡 IN, OI အပြင် TR, OT ပါ ထပ်ထည့်ထားပါသည်
+                    if sku in ['IN', 'OI', 'TR', 'OT']:
                         if not any(d['po'] == po for d in azo_targets):
                             azo_targets.append({'po': po, 'sku': sku, 'tod': tod_str})
                             
@@ -243,7 +244,8 @@ def render_document_checker_ui():
                     azo_targets, global_tod = extract_azo_targets(u_e)
                     
                     if not azo_targets:
-                        st.warning("⚠️ Upload လုပ်ထားသော Excel ဖိုင်ထဲတွင် SKU 'IN' သို့မဟုတ် 'OI' ပါသော PO များ မတွေ့ရှိပါ။")
+                        # 💡 Message တွင်ပါ TR, OT ကို ပြင်ဆင်ထားပါသည်
+                        st.warning("⚠️ Upload လုပ်ထားသော Excel ဖိုင်ထဲတွင် SKU 'IN', 'OI', 'TR' သို့မဟုတ် 'OT' ပါသော PO များ မတွေ့ရှိပါ။")
                     else:
                         missing_azos = []
                         expiring_azos = []
