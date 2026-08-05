@@ -486,6 +486,7 @@ def render_history_ui():
                             wb.save(out_xl)
                             out_xl.seek(0)
 
+                            # 💡 ဤ out_zip အပိုင်းသည် if all_data: ၏ အတွင်း၌ (space ညီညီ) ရှိနေရပါမည်
                             out_zip = io.BytesIO()
                             with zipfile.ZipFile(out_zip, "w", zipfile.ZIP_DEFLATED) as zf:
                                 zf.writestr("Teng_Hui_RO_Import_Data.xlsx", out_xl.getvalue())
@@ -501,7 +502,8 @@ def render_history_ui():
                             except: pass
                             
                             st.session_state.ro_data_res = out_zip.getvalue()
-                        else: st.warning("No data extracted.")
+                        else: 
+                            st.warning("No data extracted.")
 
             if st.session_state.ro_data_res:
                 st.success("✅ RO Data Excel & Renamed PDFs successfully generated!")
