@@ -753,7 +753,6 @@ def render_history_ui():
             if c_lic2.button("🗑️ Clear Files", key="c_lic_clear", width="stretch"): clear_files(); st.rerun()
 
         elif import_tool == "Extract Import Lists":
-            import zipfile # ZIP ဖိုင်ပြုလုပ်ရန်
             
             st.info("Upload multiple **Packing List (Excel)** files to generate a consolidated summary grouped by Material Composition.")
             
@@ -1085,8 +1084,7 @@ def render_history_ui():
                                     target_eno = elns_to_eno[elns]
                                     if data not in groups[target_eno]: groups[target_eno].append(data)
 
-                            zip_buf = io.BytesIO(); count = 0
-                            import zipfile # 💡 ဤနေရာတွင် သီးသန့် ထပ်ခေါ်ပေးလိုက်ပါ (အပေါ်က Error ကို ကျော်ဖြတ်ရန်)
+                            zip_buf = io.BytesIO(); count = 0                            
                             with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
                                 for eno, members in groups.items():
                                     if len(members) >= 2:
