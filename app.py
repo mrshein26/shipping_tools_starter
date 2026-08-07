@@ -49,14 +49,6 @@ if is_dark_mode:
     btn_sec_border = "#334155"
     btn_sec_text = "#CBD5E1"
     btn_sec_hover = "#1E293B"
-
-    # --- 📦 Radio Box (Dark Mode) အရောင်များ ---
-    box_unselected_bg = "#1E293B"      
-    box_unselected_border = "#334155"  
-    box_unselected_text = "#E2E8F0"    
-    box_hover_bg = "#334155"           
-    box_selected_bg = "#3B82F6"        
-    box_selected_text = "#FFFFFF"      
 else:
     # ☀️ Light Mode အတွက် (အရမ်းမရင့်တော့ဘဲ မျက်စိအေးသော ခဲပြာရောင် သို့ ပြောင်းထားပါသည်)
     btn_prim_bg = "#334155"    # ပိုလင်းသော ခဲပြာရောင် (Slate 700)
@@ -67,14 +59,6 @@ else:
     btn_sec_border = "#E2E8F0"
     btn_sec_text = "#475569"
     btn_sec_hover = "#F8FAFC"
-
-    # --- 📦 Radio Box (Light Mode) အရောင်များ ---
-    box_unselected_bg = "#FFFFFF"
-    box_unselected_border = "#E2E8F0"
-    box_unselected_text = "#475569"
-    box_hover_bg = "#F8FAFC"
-    box_selected_bg = "#334155"
-    box_selected_text = "#FFFFFF"
 
 # 💡 Dynamic CSS (Font, ခလုတ်ဒီဇိုင်းများ နှင့် Input Boxes များ)
 custom_css = f"""
@@ -133,7 +117,7 @@ div[data-baseweb="input"] input::placeholder {{
    ======================================================== */
 div.stButton > button {{
     display: inline-flex !important;
-    align-items: center !important;        
+    align-items: center !important;       
     justify-content: center !important;   
     padding: 0.5rem 1rem !important;
     min-height: 42px !important;
@@ -170,58 +154,6 @@ div.stButton > button[kind="secondary"] p {{
 }}
 div.stButton > button[kind="secondary"]:hover {{
     background-color: {btn_sec_hover} !important; 
-}}
-
-/* ========================================================
-   🔘 Radio Buttons ကို Rounded Box ပုံစံပြောင်းရန် (Text Centered & Theme Fixed)
-   ======================================================== */
-div[data-testid="stRadio"] > div {{
-    gap: 12px !important;
-    flex-wrap: wrap !important;
-}}
-
-/* Box ၏ အခြေခံပုံစံ (Light / Dark Mode အရောင်များကို အသုံးပြုထားသည်) */
-div[data-testid="stRadio"] label {{
-    background-color: {box_unselected_bg} !important;
-    border: 1px solid {box_unselected_border} !important;
-    border-radius: 8px !important; 
-    padding: 10px 20px !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease-in-out !important;
-    
-    /* စာသားကို Box ၏ အလယ်တည့်တည့်ရောက်စေရန် */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}}
-
-/* အဝိုင်းလေးကို ဖျောက်ခြင်း */
-div[data-testid="stRadio"] label span[data-baseweb="radio"] {{
-    display: none !important; 
-}}
-
-/* စာသားကိုင်ဆောင်ထားသော Container (Theme Color အတိအကျဝင်စေရန်) */
-div[data-testid="stRadio"] label > div {{
-    margin: 0 !important;
-    padding: 0 !important;
-    text-align: center !important;
-    width: 100% !important;
-    color: {box_unselected_text} !important; /* Theme အလိုက် စာသားအရောင် */
-}}
-
-/* ရွေးချယ်ထားသော (Active) အခြေအနေ */
-div[data-testid="stRadio"] label[data-checked="true"] {{
-    background-color: {box_selected_bg} !important;
-    border-color: {box_selected_bg} !important;
-}}
-div[data-testid="stRadio"] label[data-checked="true"] > div {{
-    color: {box_selected_text} !important;
-    font-weight: 600 !important;
-}}
-
-/* Hover လုပ်ချိန် */
-div[data-testid="stRadio"] label:hover {{
-    background-color: {box_hover_bg} !important;
 }}
 </style>
 """
