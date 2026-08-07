@@ -178,19 +178,6 @@ div.stButton > button[kind="secondary"]:hover {{
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
-/* ========================================================
-   🎯 Radio Buttons (Perfect Center & Pill Shape)
-   ======================================================== */
-/* 🌟 အပေါ်က "Select..." အကွက်အရှည်ကြီးများကို အပြီးတိုင်ဖျောက်ရန် (Updated) */
-div[data-testid="stRadio"] [data-testid="stWidgetLabel"] {{
-    display: none !important; 
-}}
-
-div[data-testid="stRadio"] > div {{
-    gap: 12px !important;
-    flex-wrap: wrap !important;
-}}
-
 div[data-testid="stRadio"] label {{
     background-color: {box_unselected_bg} !important;
     border: 1px solid {box_unselected_border} !important;
