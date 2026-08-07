@@ -174,6 +174,10 @@ div.stButton > button[kind="secondary"]:hover {{
     background-color: {btn_sec_hover} !important; 
 }}
 
+</style>
+"""
+st.markdown(custom_css, unsafe_allow_html=True)
+
 /* ========================================================
    🎯 Radio Buttons (Perfect Center & Pill Shape)
    ======================================================== */
