@@ -79,6 +79,11 @@ else:
 # 💡 Dynamic CSS (Font, ခလုတ်ဒီဇိုင်းများ နှင့် Input Boxes များ)
 custom_css = f"""
 <style>
+/* 🌟 အပေါ်က "Select..." ခေါင်းစဉ်များကို App တစ်ခုလုံးတွင် အပြီးတိုင်ဖျောက်ရန် */
+div[data-testid="stRadio"] [data-testid="stWidgetLabel"] {{
+    display: none !important; 
+}}
+
 /* 🔠 Google Fonts မှ Inter ကို လှမ်းခေါ်ခြင်း */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
