@@ -91,6 +91,11 @@ div[data-testid="stMarkdownContainer"] > p {{
     margin-bottom: 0.5rem !important;
 }}
 
+/* 🌟 Radio Box ထဲက စာသား အပေါ်ရောက်နေတာကို ပြင်ရန် (Vertical Center) */
+div[data-testid="stRadio"] div[data-testid="stMarkdownContainer"] > p {{
+    margin-bottom: 0 !important;
+}}
+
 /* ========================================================
    🔲 စာရိုက်သွင်းရသော အကွက်များ (Input Boxes - Login အပါအဝင်)
    ======================================================== */
