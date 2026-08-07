@@ -82,7 +82,7 @@ hr {{
 h1, h2, h3, h4 {{
     padding-bottom: 0.2rem !important;
     margin-bottom: 0.2rem !important;
-    font-weight: 600 !important; /* ခေါင်းစဉ်များကို ပိုမိုသပ်ရပ်စေရန် */
+    font-weight: 600 !important; 
 }}
 div[data-testid="stRadio"] {{
     margin-bottom: -1rem !important;
@@ -117,7 +117,7 @@ div[data-baseweb="input"] input::placeholder {{
    ======================================================== */
 div.stButton > button {{
     display: inline-flex !important;
-    align-items: center !important;       
+    align-items: center !important;        
     justify-content: center !important;   
     padding: 0.5rem 1rem !important;
     min-height: 42px !important;
@@ -126,7 +126,7 @@ div.stButton > button {{
     font-family: 'Inter', sans-serif !important; 
 }}
 
-/* 🔥 Primary Buttons (Process, Extract, Sign In, etc.) */
+/* 🔥 Primary Buttons */
 div.stButton > button[kind="primary"] {{
     background-color: {btn_prim_bg} !important;
     border: 1px solid {btn_prim_bg} !important;
@@ -142,7 +142,7 @@ div.stButton > button[kind="primary"]:hover {{
     border-color: {btn_prim_hover} !important;
 }}
 
-/* ⚪ Secondary Buttons (Clear Files, etc.) */
+/* ⚪ Secondary Buttons */
 div.stButton > button[kind="secondary"] {{
     background-color: {btn_sec_bg} !important;
     border: 1px solid {btn_sec_border} !important;
@@ -154,6 +154,65 @@ div.stButton > button[kind="secondary"] p {{
 }}
 div.stButton > button[kind="secondary"]:hover {{
     background-color: {btn_sec_hover} !important; 
+}}
+
+/* ========================================================
+   🎯 Radio Buttons (Perfect Center & Pill Shape)
+   ======================================================== */
+div[data-testid="stRadio"] > div {{
+    gap: 12px !important;
+    flex-wrap: wrap !important;
+}}
+
+/* Box ၏ အခြေခံပုံစံ (Pill Shape) */
+div[data-testid="stRadio"] label {{
+    background-color: {box_unselected_bg} !important;
+    border: 1px solid {box_unselected_border} !important;
+    border-radius: 50px !important; /* ဆေးတောင့်ပုံစံ */
+    padding: 8px 24px !important; 
+    cursor: pointer !important;
+    transition: all 0.2s ease-in-out !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}}
+
+/* အဝိုင်းလေးကို အပြီးတိုင်ဖျောက်ခြင်း */
+div[data-testid="stRadio"] label span[data-baseweb="radio"] {{
+    display: none !important; 
+}}
+
+/* စာသားကို Center အတိအကျဖြစ်စေရန် Streamlit ၏ မူလ Margin များကို ဖယ်ရှားခြင်း */
+div[data-testid="stRadio"] label > div {{
+    margin: 0 !important;
+    margin-left: 0 !important; 
+    padding: 0 !important;
+    padding-left: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: {box_unselected_text} !important; 
+}}
+
+/* အတွင်းဆုံးရှိ စာသား (p tag) ၏ Margin များကိုပါ ရှင်းထုတ်ခြင်း */
+div[data-testid="stRadio"] label > div > p {{
+    margin: 0 !important;
+    padding: 0 !important;
+}}
+
+/* ရွေးချယ်ထားသော (Active) အခြေအနေ */
+div[data-testid="stRadio"] label[data-checked="true"] {{
+    background-color: {box_selected_bg} !important;
+    border-color: {box_selected_bg} !important;
+}}
+div[data-testid="stRadio"] label[data-checked="true"] > div {{
+    color: {box_selected_text} !important;
+    font-weight: 600 !important;
+}}
+
+/* Hover လုပ်ချိန် */
+div[data-testid="stRadio"] label:hover {{
+    background-color: {box_hover_bg} !important;
 }}
 </style>
 """
