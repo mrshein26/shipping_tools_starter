@@ -177,6 +177,11 @@ div.stButton > button[kind="secondary"]:hover {{
 /* ========================================================
    🎯 Radio Buttons (Perfect Center & Pill Shape)
    ======================================================== */
+/* 🌟 အပေါ်က "Select..." အကွက်အရှည်ကြီးများကို အပြီးတိုင်ဖျောက်ရန် */
+div[data-testid="stRadio"] > label {{
+    display: none !important; 
+}}
+
 div[data-testid="stRadio"] > div {{
     gap: 12px !important;
     flex-wrap: wrap !important;
