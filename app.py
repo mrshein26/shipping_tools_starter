@@ -12,6 +12,7 @@ from views.booking_forms_view import render_booking_forms_ui
 from views.document_checker_view import render_document_checker_ui
 
 # ၁။ Page Config
+# 💡 ဤနေရာတွင် ဖိုင်နာမည်ကို "TH Logo.png" ဟု အတိအကျ ပြင်ဆင်ထားပါသည်
 logo_img = Image.open("assets/images/TH Logo.png") 
 st.set_page_config(page_title="Shipping Tools - V2", page_icon=logo_img, layout="wide")
 
@@ -21,6 +22,7 @@ if "logged_in" not in st.session_state:
 if "current_user" not in st.session_state: 
     st.session_state.current_user = None
 
+# 💡 Theme ကို App ဖွင့်ဖွင့်ချင်း Light အဖြစ် ပုံသေသတ်မှတ်ခြင်း (Error မတက်စေရန်)
 if "theme" not in st.session_state:
     st.session_state.theme = "Light"
 
@@ -48,9 +50,9 @@ if is_dark_mode:
     btn_sec_text = "#CBD5E1"
     btn_sec_hover = "#1E293B"
 else:
-    # ☀️ Light Mode အတွက်
-    btn_prim_bg = "#334155"    
-    btn_prim_hover = "#475569" 
+    # ☀️ Light Mode အတွက် (အရမ်းမရင့်တော့ဘဲ မျက်စိအေးသော ခဲပြာရောင် သို့ ပြောင်းထားပါသည်)
+    btn_prim_bg = "#334155"    # ပိုလင်းသော ခဲပြာရောင် (Slate 700)
+    btn_prim_hover = "#475569" # Mouse တင်လျှင် ပိုလင်းသွားမည်
     btn_prim_text = "#FFFFFF" 
     
     btn_sec_bg = "#FFFFFF"
@@ -58,7 +60,7 @@ else:
     btn_sec_text = "#475569"
     btn_sec_hover = "#F8FAFC"
 
-# 💡 Dynamic CSS 
+# 💡 Dynamic CSS (Font, ခလုတ်ဒီဇိုင်းများ နှင့် Input Boxes များ)
 custom_css = f"""
 <style>
 /* 🔠 Google Fonts မှ Inter ကို လှမ်းခေါ်ခြင်း */
@@ -80,14 +82,17 @@ hr {{
 h1, h2, h3, h4 {{
     padding-bottom: 0.2rem !important;
     margin-bottom: 0.2rem !important;
-    font-weight: 600 !important; 
+    font-weight: 600 !important; /* ခေါင်းစဉ်များကို ပိုမိုသပ်ရပ်စေရန် */
+}}
+div[data-testid="stRadio"] {{
+    margin-bottom: -1rem !important;
 }}
 div[data-testid="stMarkdownContainer"] > p {{
     margin-bottom: 0.5rem !important;
 }}
 
 /* ========================================================
-   🔲 စာရိုက်သွင်းရသော အကွက်များ (Input Boxes)
+   🔲 စာရိုက်သွင်းရသော အကွက်များ (Input Boxes - Login အပါအဝင်)
    ======================================================== */
 div[data-baseweb="input"] > div {{
     background-color: #F8FAFC !important; 
@@ -112,7 +117,7 @@ div[data-baseweb="input"] input::placeholder {{
    ======================================================== */
 div.stButton > button {{
     display: inline-flex !important;
-    align-items: center !important;        
+    align-items: center !important;       
     justify-content: center !important;   
     padding: 0.5rem 1rem !important;
     min-height: 42px !important;
@@ -121,6 +126,7 @@ div.stButton > button {{
     font-family: 'Inter', sans-serif !important; 
 }}
 
+/* 🔥 Primary Buttons (Process, Extract, Sign In, etc.) */
 div.stButton > button[kind="primary"] {{
     background-color: {btn_prim_bg} !important;
     border: 1px solid {btn_prim_bg} !important;
@@ -136,6 +142,7 @@ div.stButton > button[kind="primary"]:hover {{
     border-color: {btn_prim_hover} !important;
 }}
 
+/* ⚪ Secondary Buttons (Clear Files, etc.) */
 div.stButton > button[kind="secondary"] {{
     background-color: {btn_sec_bg} !important;
     border: 1px solid {btn_sec_border} !important;
@@ -148,51 +155,6 @@ div.stButton > button[kind="secondary"] p {{
 div.stButton > button[kind="secondary"]:hover {{
     background-color: {btn_sec_hover} !important; 
 }}
-
-/* ========================================================
-   🔘 Radio Buttons ကို Rounded Box ပုံစံပြောင်းရန်
-   ======================================================== */
-div[data-testid="stRadio"] > div {{
-    gap: 12px !important;
-    flex-wrap: wrap !important;
-}}
-
-div[data-testid="stRadio"] label {{
-    background-color: {btn_sec_bg} !important;
-    border: 1px solid {btn_sec_border} !important;
-    border-radius: 8px !important; /* ထောင့်ဝိုင်းပုံစံ */
-    padding: 10px 20px !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease-in-out !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}}
-
-/* အဝိုင်းလေးကို ဖျောက်ခြင်း */
-div[data-testid="stRadio"] label span[data-baseweb="radio"] {{
-    display: none !important; 
-}}
-
-/* ရွေးချယ်ထားသော အခြေအနေ */
-div[data-testid="stRadio"] label[data-checked="true"] {{
-    background-color: {btn_prim_bg} !important;
-    border-color: {btn_prim_bg} !important;
-}}
-div[data-testid="stRadio"] label[data-checked="true"] div {{
-    color: {btn_prim_text} !important;
-    font-weight: 600 !important;
-}}
-
-/* ရွေးချယ်မထားသော စာသားအရောင် */
-div[data-testid="stRadio"] label[data-checked="false"] div {{
-    color: {btn_sec_text} !important;
-}}
-
-/* Hover အခြေအနေ */
-div[data-testid="stRadio"] label:hover {{
-    background-color: {btn_sec_hover} !important;
-}}
 </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
@@ -200,6 +162,7 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # ၅။ Header Layout
 top_col1, top_col2 = st.columns([7, 3])
 with top_col1:
+    # 💡 ခေါင်းစဉ် (Header) ကို ရေပြာရင့်ရောင် ပြောင်းထားပါသည်
     st.markdown("<h1 style='color: #1E40AF; padding-bottom: 0; margin-bottom: 0;'>Shipping Tools - V2</h1>", unsafe_allow_html=True)
     st.caption(f"Active User: {st.session_state.current_user} | 🔐 Secure Access")
 
