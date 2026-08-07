@@ -78,7 +78,6 @@ else:
 
 # 💡 Dynamic CSS (Font, ခလုတ်ဒီဇိုင်းများ နှင့် Input Boxes များ)
 custom_css = f"""
-... (အောက်ပိုင်း CSS ကုဒ်များ ဆက်ရှိနေမည်) ...
 <style>
 /* 🔠 Google Fonts မှ Inter ကို လှမ်းခေါ်ခြင်း */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
