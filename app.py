@@ -49,10 +49,18 @@ if is_dark_mode:
     btn_sec_border = "#334155"
     btn_sec_text = "#CBD5E1"
     btn_sec_hover = "#1E293B"
+
+    # --- 📦 Radio Box (Dark Mode) အရောင်များ ---
+    box_unselected_bg = "#1E293B"      
+    box_unselected_border = "#334155"  
+    box_unselected_text = "#E2E8F0"    
+    box_hover_bg = "#334155"           
+    box_selected_bg = "#3B82F6"        
+    box_selected_text = "#FFFFFF"      
 else:
-    # ☀️ Light Mode အတွက် (အရမ်းမရင့်တော့ဘဲ မျက်စိအေးသော ခဲပြာရောင် သို့ ပြောင်းထားပါသည်)
-    btn_prim_bg = "#334155"    # ပိုလင်းသော ခဲပြာရောင် (Slate 700)
-    btn_prim_hover = "#475569" # Mouse တင်လျှင် ပိုလင်းသွားမည်
+    # ☀️ Light Mode အတွက် 
+    btn_prim_bg = "#334155"    
+    btn_prim_hover = "#475569" 
     btn_prim_text = "#FFFFFF" 
     
     btn_sec_bg = "#FFFFFF"
@@ -60,7 +68,15 @@ else:
     btn_sec_text = "#475569"
     btn_sec_hover = "#F8FAFC"
 
-# 💡 Dynamic CSS (Font, ခလုတ်ဒီဇိုင်းများ နှင့် Input Boxes များ)
+    # --- 📦 Radio Box (Light Mode) အရောင်များ ---
+    box_unselected_bg = "#FFFFFF"
+    box_unselected_border = "#E2E8F0"
+    box_unselected_text = "#475569"
+    box_hover_bg = "#F8FAFC"
+    box_selected_bg = "#334155"
+    box_selected_text = "#FFFFFF"
+
+# 💡 Dynamic CSS 
 custom_css = f"""
 <style>
 /* 🔠 Google Fonts မှ Inter ကို လှမ်းခေါ်ခြင်း */
