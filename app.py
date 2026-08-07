@@ -82,17 +82,14 @@ hr {{
 h1, h2, h3, h4 {{
     padding-bottom: 0.2rem !important;
     margin-bottom: 0.2rem !important;
-    font-weight: 600 !important; /* ခေါင်းစဉ်များကို ပိုမိုသပ်ရပ်စေရန် */
+    font-weight: 600 !important; 
 }}
 div[data-testid="stRadio"] {{
     margin-bottom: -1rem !important;
 }}
-div[data-testid="stMarkdownContainer"] > p {{
-    margin-bottom: 0.5rem !important;
-}}
 
-/* 🌟 Radio Box ထဲက စာသား အပေါ်ရောက်နေတာကို ပြင်ရန် (Vertical Center) */
-div[data-testid="stRadio"] div[data-testid="stMarkdownContainer"] > p {{
+/* 🌟 ဒီနေရာက မူလကုဒ်မှာ စာသားကို အပေါ်တွန်းတင်နေတဲ့ တရားခံပါ (0.5rem မှ 0 သို့ ပြင်ထားသည်) */
+div[data-testid="stMarkdownContainer"] > p {{
     margin-bottom: 0 !important;
 }}
 
@@ -122,7 +119,7 @@ div[data-baseweb="input"] input::placeholder {{
    ======================================================== */
 div.stButton > button {{
     display: inline-flex !important;
-    align-items: center !important;       
+    align-items: center !important;        
     justify-content: center !important;   
     padding: 0.5rem 1rem !important;
     min-height: 42px !important;
@@ -131,7 +128,7 @@ div.stButton > button {{
     font-family: 'Inter', sans-serif !important; 
 }}
 
-/* 🔥 Primary Buttons (Process, Extract, Sign In, etc.) */
+/* 🔥 Primary Buttons */
 div.stButton > button[kind="primary"] {{
     background-color: {btn_prim_bg} !important;
     border: 1px solid {btn_prim_bg} !important;
@@ -147,7 +144,7 @@ div.stButton > button[kind="primary"]:hover {{
     border-color: {btn_prim_hover} !important;
 }}
 
-/* ⚪ Secondary Buttons (Clear Files, etc.) */
+/* ⚪ Secondary Buttons */
 div.stButton > button[kind="secondary"] {{
     background-color: {btn_sec_bg} !important;
     border: 1px solid {btn_sec_border} !important;
@@ -159,6 +156,71 @@ div.stButton > button[kind="secondary"] p {{
 }}
 div.stButton > button[kind="secondary"]:hover {{
     background-color: {btn_sec_hover} !important; 
+}}
+
+/* ========================================================
+   🎯 Radio Buttons (Perfect Center & Pill Shape)
+   ======================================================== */
+div[data-testid="stRadio"] > div {{
+    gap: 12px !important;
+    flex-wrap: wrap !important;
+}}
+
+div[data-testid="stRadio"] label {{
+    background-color: {box_unselected_bg} !important;
+    border: 1px solid {box_unselected_border} !important;
+    border-radius: 50px !important; 
+    padding: 10px 24px !important; 
+    cursor: pointer !important;
+    transition: all 0.2s ease-in-out !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important; 
+    min-height: 44px !important; /* 🌟 Box အရွယ်အစားကို အတိအကျ ထိန်းထားခြင်း */
+}}
+
+div[data-testid="stRadio"] label div[data-baseweb="radio"] {{
+    display: none !important; 
+    width: 0 !important;
+    margin: 0 !important;
+}}
+div[data-testid="stRadio"] label span[data-baseweb="radio"] {{
+    display: none !important; 
+}}
+
+div[data-testid="stRadio"] label > div {{
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important; 
+    height: 100% !important; 
+    color: {box_unselected_text} !important; 
+}}
+
+/* 🌟 စာသားကို အပေါ်အောက် အလယ်တည့်တည့်ကျစေရန် သေချာချုပ်ထားခြင်း */
+div[data-testid="stRadio"] label p {{
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1 !important; 
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}}
+
+div[data-testid="stRadio"] label[data-checked="true"] {{
+    background-color: {box_selected_bg} !important;
+    border-color: {box_selected_bg} !important;
+}}
+div[data-testid="stRadio"] label[data-checked="true"] > div {{
+    color: {box_selected_text} !important;
+    font-weight: 600 !important;
+}}
+
+div[data-testid="stRadio"] label:hover {{
+    background-color: {box_hover_bg} !important;
 }}
 </style>
 """
