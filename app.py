@@ -174,10 +174,6 @@ div.stButton > button[kind="secondary"]:hover {{
     background-color: {btn_sec_hover} !important; 
 }}
 
-</style>
-"""
-st.markdown(custom_css, unsafe_allow_html=True)
-
 div[data-testid="stRadio"] label {{
     background-color: {box_unselected_bg} !important;
     border: 1px solid {box_unselected_border} !important;
