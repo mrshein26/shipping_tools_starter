@@ -114,7 +114,7 @@ div[data-testid="stMarkdownContainer"] > p {{
     margin-top: 0 !important; 
     margin-bottom: 0 !important;
     padding-top: 2px !important;
-    padding-bottom: 8px !important;
+    padding-bottom: 4px !important;
 }}
 
 /* ========================================================
