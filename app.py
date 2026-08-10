@@ -111,7 +111,10 @@ div[data-testid="stRadio"] {{
 
 /* 🌟 ဒီနေရာက မူလကုဒ်မှာ စာသားကို အပေါ်တွန်းတင်နေတဲ့ တရားခံပါ (0.5rem မှ 0 သို့ ပြင်ထားသည်) */
 div[data-testid="stMarkdownContainer"] > p {{
+    margin-top: 0 !important; 
     margin-bottom: 0 !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
 }}
 
 /* ========================================================
