@@ -109,12 +109,13 @@ div[data-testid="stRadio"] {{
     margin-bottom: -1rem !important;
 }}
 
-/* 🌟 ဒီနေရာက မူလကုဒ်မှာ စာသားကို အပေါ်တွန်းတင်နေတဲ့ တရားခံပါ (0.5rem မှ 0 သို့ ပြင်ထားသည်) */
+/* 🌟 Box အတွင်းရှိ စာသားများကို အပေါ်အောက် အလယ်တည့်တည့်ဖြစ်စေရန် ထပ်မံချိန်ညှိခြင်း */
 div[data-testid="stMarkdownContainer"] > p {{
     margin-top: 0 !important; 
     margin-bottom: 0 !important;
-    padding-top: 2px !important;
-    padding-bottom: 2px !important;
+    padding-top: 0 !important; 
+    padding-bottom: 6px !important; 
+    line-height: 1.5 !important;
 }}
 
 /* ========================================================
