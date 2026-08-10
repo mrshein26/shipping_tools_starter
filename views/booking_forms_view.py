@@ -161,7 +161,15 @@ def render_booking_forms_ui():
     # [1] Air Booking (Excel)
     if selected_form == "Air Booking (Excel)":
         st.markdown("#### ✈️ Air Booking Automation")
-        st.info("Upload **H&M Air BKG Lists.xlsx** to generate automated Air Booking Excel forms.")
+        # st.info အစား အောက်ပါကုဒ်ကို အသုံးပြုပါ
+info_html = """
+<div style="background-color: #EBF4FC; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center;">
+    <p style="margin: 0 !important; padding: 0 !important; color: #1E293B; line-height: 1.2;">
+        Upload <b>H&M Air BKG Lists.xlsx</b> to generate automated Air Booking Excel forms.
+    </p>
+</div>
+"""
+st.markdown(info_html, unsafe_allow_html=True)
         bkg_file = st.file_uploader("Upload H&M Air BKG Lists (Excel)", type=["xlsx"], key=f"air_{st.session_state.bkg_up_key}")
         
         c_air1, c_air2 = st.columns(2)
