@@ -196,7 +196,7 @@ div[data-testid="stRadio"] label {{
 /* စာသားကို နေရာချထားခြင်း */
 div[data-testid="stRadio"] label p {{
     margin: 0 !important;
-    padding: 0 0 0 2px !important; 
+    padding: 0 0 0 1px !important; 
     line-height: 1 !important; 
     display: flex !important;
     align-items: center !important;
