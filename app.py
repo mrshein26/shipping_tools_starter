@@ -182,38 +182,38 @@ div.stButton > button[kind="secondary"]:hover {{
 /* ========================================================
    🔘 Radio Buttons (ဘောင်မပါသော အဝိုင်းဒီဇိုင်း)
    ======================================================== */
-div[data-testid="stRadio"] label {
-    background-color: transparent !important; /* နောက်ခံအရောင် ဖြုတ်မည် */
-    border: none !important; /* ဘောင် ဖြုတ်မည် */
+div[data-testid="stRadio"] label {{
+    background-color: transparent !important; 
+    border: none !important; 
     padding: 8px 16px 8px 0px !important; 
     cursor: pointer !important;
     transition: all 0.2s ease-in-out !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: flex-start !important; /* ဘယ်ဘက်သို့ ကပ်ထားမည် */
-}
+    justify-content: flex-start !important; 
+}}
 
 /* စာသားကို နေရာချထားခြင်း */
-div[data-testid="stRadio"] label p {
+div[data-testid="stRadio"] label p {{
     margin: 0 !important;
-    padding: 0 0 0 8px !important; /* အဝိုင်းနှင့် စာသားကြား နေရာလပ် */
+    padding: 0 0 0 8px !important; 
     line-height: 1 !important; 
     display: flex !important;
     align-items: center !important;
     color: {box_unselected_text} !important;
-}
+}}
 
 /* Hover ဖြစ်ချိန်တွင် အရောင်မပြောင်းဘဲ opacity သာ လျှော့မည် */
-div[data-testid="stRadio"] label:hover {
+div[data-testid="stRadio"] label:hover {{
     background-color: transparent !important;
     opacity: 0.7 !important;
-}
+}}
 
 /* 🌟 ရွေးချယ်ထားသော (Checked) အခြေအနေတွင် စာသားကို ပိုထင်ရှားစေရန် */
-div[data-testid="stRadio"] label[data-checked="true"] p {
-    color: {box_selected_bg} !important; /* Theme အလိုက် အရောင်ပြောင်းရန် */
+div[data-testid="stRadio"] label[data-checked="true"] p {{
+    color: {box_selected_bg} !important; 
     font-weight: 600 !important;
-}
+}}
 </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
