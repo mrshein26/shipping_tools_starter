@@ -179,62 +179,41 @@ div.stButton > button[kind="secondary"]:hover {{
     background-color: {btn_sec_hover} !important; 
 }}
 
-div[data-testid="stRadio"] label {{
-    background-color: {box_unselected_bg} !important;
-    border: 1px solid {box_unselected_border} !important;
-    border-radius: 50px !important; 
-    padding: 10px 24px !important; 
+/* ========================================================
+   🔘 Radio Buttons (ဘောင်မပါသော အဝိုင်းဒီဇိုင်း)
+   ======================================================== */
+div[data-testid="stRadio"] label {
+    background-color: transparent !important; /* နောက်ခံအရောင် ဖြုတ်မည် */
+    border: none !important; /* ဘောင် ဖြုတ်မည် */
+    padding: 8px 16px 8px 0px !important; 
     cursor: pointer !important;
     transition: all 0.2s ease-in-out !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important; 
-    min-height: 44px !important; /* 🌟 Box အရွယ်အစားကို အတိအကျ ထိန်းထားခြင်း */
-}}
+    justify-content: flex-start !important; /* ဘယ်ဘက်သို့ ကပ်ထားမည် */
+}
 
-div[data-testid="stRadio"] label div[data-baseweb="radio"] {{
-    display: none !important; 
-    width: 0 !important;
+/* စာသားကို နေရာချထားခြင်း */
+div[data-testid="stRadio"] label p {
     margin: 0 !important;
-}}
-div[data-testid="stRadio"] label span[data-baseweb="radio"] {{
-    display: none !important; 
-}}
-
-div[data-testid="stRadio"] label > div {{
-    margin: 0 !important;
-    padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 100% !important; 
-    height: 100% !important; 
-    color: {box_unselected_text} !important; 
-}}
-
-/* 🌟 စာသားကို အပေါ်အောက် အလယ်တည့်တည့်ကျစေရန် သေချာချုပ်ထားခြင်း */
-div[data-testid="stRadio"] label p {{
-    margin: 0 !important;
-    padding: 0 !important;
+    padding: 0 0 0 8px !important; /* အဝိုင်းနှင့် စာသားကြား နေရာလပ် */
     line-height: 1 !important; 
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
-}}
+    color: {box_unselected_text} !important;
+}
 
-div[data-testid="stRadio"] label[data-checked="true"] {{
-    background-color: {box_selected_bg} !important;
-    border-color: {box_selected_bg} !important;
-}}
-div[data-testid="stRadio"] label[data-checked="true"] > div {{
-    color: {box_selected_text} !important;
+/* Hover ဖြစ်ချိန်တွင် အရောင်မပြောင်းဘဲ opacity သာ လျှော့မည် */
+div[data-testid="stRadio"] label:hover {
+    background-color: transparent !important;
+    opacity: 0.7 !important;
+}
+
+/* 🌟 ရွေးချယ်ထားသော (Checked) အခြေအနေတွင် စာသားကို ပိုထင်ရှားစေရန် */
+div[data-testid="stRadio"] label[data-checked="true"] p {
+    color: {box_selected_bg} !important; /* Theme အလိုက် အရောင်ပြောင်းရန် */
     font-weight: 600 !important;
-}}
-
-div[data-testid="stRadio"] label:hover {{
-    background-color: {box_hover_bg} !important;
-}}
+}
 </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
