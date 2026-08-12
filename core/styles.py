@@ -177,23 +177,25 @@ div[data-testid="stRadio"] label[data-checked="true"] p {{
 }}
 
 /* ========================================================
-   💊 Pills Menu (st.pills) ၏ ဒီဇိုင်း (အသစ်ထည့်သွင်းထားသည်)
+   💊 Pills Menu (st.pills) ၏ ဒီဇိုင်း (Stronger Selectors)
    ======================================================== */
 div[data-testid="stPills"] button {{
     background-color: {box_unselected_bg} !important; 
     border: 1px solid {box_unselected_border} !important;
-    color: {box_unselected_text} !important;
     border-radius: 20px !important; 
-    padding: 8px 16px !important;
+    padding: 4px 16px !important;
     margin-right: 8px !important;
     transition: all 0.2s ease-in-out !important;
-    font-family: 'Inter', sans-serif !important;
 }}
 
-div[data-testid="stPills"] button p {{
+/* 🌟 အတွင်းရှိ စာသားများကို သေချာပေါက် အရောင်ပြောင်းရန် (Tags အားလုံးကို ဖမ်းထားသည်) */
+div[data-testid="stPills"] button,
+div[data-testid="stPills"] button p,
+div[data-testid="stPills"] button span,
+div[data-testid="stPills"] button div {{
     color: {box_unselected_text} !important;
     font-weight: 400 !important;
-    margin: 0 !important;
+    font-family: 'Inter', sans-serif !important;
 }}
 
 div[data-testid="stPills"] button:hover {{
@@ -202,6 +204,7 @@ div[data-testid="stPills"] button:hover {{
     opacity: 0.9 !important;
 }}
 
+/* 🌟 ရွေးချယ်ထားသော (Checked/Active) အခြေအနေ */
 div[data-testid="stPills"] button[data-checked="true"],
 div[data-testid="stPills"] button[aria-pressed="true"] {{
     background-color: {box_selected_bg} !important;
@@ -210,7 +213,11 @@ div[data-testid="stPills"] button[aria-pressed="true"] {{
 }}
 
 div[data-testid="stPills"] button[data-checked="true"] p,
-div[data-testid="stPills"] button[aria-pressed="true"] p {{
+div[data-testid="stPills"] button[data-checked="true"] span,
+div[data-testid="stPills"] button[data-checked="true"] div,
+div[data-testid="stPills"] button[aria-pressed="true"] p,
+div[data-testid="stPills"] button[aria-pressed="true"] span,
+div[data-testid="stPills"] button[aria-pressed="true"] div {{
     color: {box_selected_text} !important;
     font-weight: 600 !important;
 }}
