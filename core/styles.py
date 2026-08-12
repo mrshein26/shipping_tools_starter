@@ -224,5 +224,11 @@ button[data-testid="stPill"][aria-pressed="true"] * {{
     color: {box_selected_text} !important;
     font-weight: 600 !important;
 }}
+/* Select မလုပ်ထားတဲ့ Pill တွေရဲ့ အဖြူရောင် Background ပေါ်မှာ စာသားမြင်ရအောင် Dark Color ပြောင်းခြင်း */
+        div[data-testid*="stPill"] *,
+        div[data-testid*="stSegmented"] * {{
+            color: #0F172A !important; 
+            font-weight: 500 !important;
+}}
 </style>
 """
