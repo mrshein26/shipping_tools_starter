@@ -206,29 +206,21 @@ button[data-testid="stPill"]:hover {{
     opacity: 0.9 !important;
 }}
 
-/* 🌟 Selected (Active ဖြစ်နေသော) အခြေအနေ */
-div[data-testid="stPills"] button[data-checked="true"],
-div[data-testid="stPills"] button[aria-pressed="true"],
-button[data-testid="stPill"][data-checked="true"],
-button[data-testid="stPill"][aria-pressed="true"] {{
-    background-color: {box_selected_bg} !important;
-    border: 1px solid {box_selected_bg} !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-}}
-
-/* 🌟 Selected ဖြစ်နေချိန် အတွင်းရှိ စာသားကို ထင်ရှားစေရန် */
-div[data-testid="stPills"] button[data-checked="true"] *,
-div[data-testid="stPills"] button[aria-pressed="true"] *,
-button[data-testid="stPill"][data-checked="true"] *,
-button[data-testid="stPill"][aria-pressed="true"] * {{
-    color: {box_selected_text} !important;
+/* Select မလုပ်ထားတဲ့ Pill တွေရဲ့ အဖြူရောင် Background ပေါ်မှာ စာသားမြင်ရအောင် Dark Color ပြောင်းခြင်း */
+div[data-testid="stPills"] button p,
+div[data-testid="stPills"] button span,
+div[data-testid="stSegmented"] button p,
+div[data-testid="stSegmented"] button span {{
+    color: #0F172A !important; 
     font-weight: 600 !important;
 }}
-/* Select မလုပ်ထားတဲ့ Pill တွေရဲ့ အဖြူရောင် Background ပေါ်မှာ စာသားမြင်ရအောင် Dark Color ပြောင်းခြင်း */
-        div[data-testid*="stPill"] *,
-        div[data-testid*="stSegmented"] * {{
-            color: #0F172A !important; 
-            font-weight: 500 !important;
+
+/* Selected (Active) ဖြစ်နေသော Pill အတွက်မူ စာသားကို အဖြူရောင် ပြန်ထားရန် */
+div[data-testid="stPills"] button[aria-pressed="true"] p,
+div[data-testid="stPills"] button[data-checked="true"] p,
+div[data-testid="stSegmented"] button[aria-pressed="true"] p,
+div[data-testid="stSegmented"] button[data-checked="true"] p {{
+    color: #FFFFFF !important;
 }}
 </style>
 """
