@@ -177,47 +177,50 @@ div[data-testid="stRadio"] label[data-checked="true"] p {{
 }}
 
 /* ========================================================
-   💊 Pills Menu (st.pills) ၏ ဒီဇိုင်း (Stronger Selectors)
+   💊 Pills Menu (st.pills) ၏ ဒီဇိုင်း (Ultimate Selectors)
    ======================================================== */
-div[data-testid="stPills"] button {{
+/* 🌟 Unselected (ပုံမှန်) အခြေအနေ */
+div[data-testid="stPills"] button,
+button[data-testid="stPill"] {{
     background-color: {box_unselected_bg} !important; 
     border: 1px solid {box_unselected_border} !important;
     border-radius: 20px !important; 
-    padding: 4px 16px !important;
+    padding: 6px 16px !important;
     margin-right: 8px !important;
     transition: all 0.2s ease-in-out !important;
 }}
 
-/* 🌟 အတွင်းရှိ စာသားများကို သေချာပေါက် အရောင်ပြောင်းရန် (Tags အားလုံးကို ဖမ်းထားသည်) */
-div[data-testid="stPills"] button,
-div[data-testid="stPills"] button p,
-div[data-testid="stPills"] button span,
-div[data-testid="stPills"] button div {{
+/* 🌟 အတွင်းရှိ စာသား (Text) များကို အတင်းအကျပ် အရောင်ပြောင်းရန် */
+div[data-testid="stPills"] button *,
+button[data-testid="stPill"] * {{
     color: {box_unselected_text} !important;
     font-weight: 400 !important;
     font-family: 'Inter', sans-serif !important;
 }}
 
-div[data-testid="stPills"] button:hover {{
+/* 🌟 Hover ဖြစ်ချိန် */
+div[data-testid="stPills"] button:hover,
+button[data-testid="stPill"]:hover {{
     background-color: {box_hover_bg} !important;
     border-color: {box_hover_bg} !important;
     opacity: 0.9 !important;
 }}
 
-/* 🌟 ရွေးချယ်ထားသော (Checked/Active) အခြေအနေ */
+/* 🌟 Selected (Active ဖြစ်နေသော) အခြေအနေ */
 div[data-testid="stPills"] button[data-checked="true"],
-div[data-testid="stPills"] button[aria-pressed="true"] {{
+div[data-testid="stPills"] button[aria-pressed="true"],
+button[data-testid="stPill"][data-checked="true"],
+button[data-testid="stPill"][aria-pressed="true"] {{
     background-color: {box_selected_bg} !important;
     border: 1px solid {box_selected_bg} !important;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
 }}
 
-div[data-testid="stPills"] button[data-checked="true"] p,
-div[data-testid="stPills"] button[data-checked="true"] span,
-div[data-testid="stPills"] button[data-checked="true"] div,
-div[data-testid="stPills"] button[aria-pressed="true"] p,
-div[data-testid="stPills"] button[aria-pressed="true"] span,
-div[data-testid="stPills"] button[aria-pressed="true"] div {{
+/* 🌟 Selected ဖြစ်နေချိန် အတွင်းရှိ စာသားကို ထင်ရှားစေရန် */
+div[data-testid="stPills"] button[data-checked="true"] *,
+div[data-testid="stPills"] button[aria-pressed="true"] *,
+button[data-testid="stPill"][data-checked="true"] *,
+button[data-testid="stPill"][aria-pressed="true"] * {{
     color: {box_selected_text} !important;
     font-weight: 600 !important;
 }}
