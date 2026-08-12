@@ -80,7 +80,7 @@ if st.session_state.current_user == "admin":
 
 st.write("### 🧰 Select Tool")
 # Radio အစား pills ကို သုံးပါမည်
-tool = st.pills("Select Tool Menu", available_tools, horizontal=True, label_visibility="collapsed")
+tool = st.pills("Select Tool Menu", available_tools, label_visibility="collapsed")
 
 # Pills က နှိပ်ပြီးသားကို ထပ်နှိပ်ရင် Unselect ဖြစ်သွားတတ်လို့ Default ပြန်ထားပေးဖို့ လိုပါတယ်
 if not tool:
